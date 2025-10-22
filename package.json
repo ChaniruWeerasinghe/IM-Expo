@@ -22,14 +22,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "firebase": "^12.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1"
+    "react-firebase-hooks": "^5.1.1",
+    "react-router-dom": "^7.9.4",
+    "react-scripts": "^5.0.1",
+    "recharts": "^3.3.0"
   },
   "devDependencies": {
-    "tailwindcss": "^3.3.3",
+    "autoprefixer": "^10.4.14",
     "postcss": "^8.4.30",
-    "autoprefixer": "^10.4.14"
+    "tailwindcss": "^3.3.3"
   },
   "bugs": {
     "url": "https://github.com/mygptshared2024-code/IM-Expo-Platform/issues"
