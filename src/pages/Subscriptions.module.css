@@ -1,0 +1,282 @@
+/* Subscriptions.module.css - Professional Upgrade */
+
+.container {
+    min-height: 100vh;
+    background-color: #f3f4f6;
+    /* Slightly lighter gray for premium feel */
+    padding: 4rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+}
+
+.heading {
+    text-align: center;
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 2.5rem;
+    /* Larger, more premium */
+    font-weight: 900;
+    color: #111827;
+}
+
+.description {
+    margin-top: 1rem;
+    font-size: 1.125rem;
+    color: #6b7280;
+    /* Slightly softer gray */
+}
+
+.sellerGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    max-width: 1120px;
+    margin: 3rem auto 0;
+}
+
+.planCard {
+    background: linear-gradient(145deg, #ffffff, #f9fafb);
+    border-radius: 1rem;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.planCard:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.planTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.planPrice {
+    margin-top: 1rem;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f2937;
+}
+
+.planCredits {
+    margin-top: 0.5rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.planFeatures {
+    margin-top: 1.5rem;
+    list-style: none;
+    padding: 0;
+}
+
+.planFeatures li {
+    color: #4b5563;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    position: relative;
+    padding-left: 1.25rem;
+}
+
+.planFeatures li::before {
+    content: "✔";
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    /* Green checkmark */
+    font-size: 1rem;
+}
+
+.planButton {
+    margin-top: 2rem;
+    background-color: #2563eb;
+    /* Primary blue */
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.planButton:hover {
+    background-color: #1d4ed8;
+    transform: translateY(-2px);
+}
+
+/* Buyer Plan */
+.buyerPlan {
+    max-width: 32rem;
+    margin: 5rem auto 0;
+    text-align: center;
+    background: linear-gradient(145deg, #ffffff, #f3f4f6);
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.buyerPlan:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.buyerPlan h3 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.buyerPlan p {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-top: 0.5rem;
+}
+
+/* Buyer Plan Features - Fixed Alignment */
+.buyerPlan ul {
+    margin-top: 1.5rem;
+    list-style: none;
+    padding: 0;
+}
+
+.buyerPlan ul li {
+    color: #4b5563;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    position: relative;
+    padding-left: 2rem;
+    /* Increase left padding for checkmark */
+    display: flex;
+    /* Align checkmark and text */
+    align-items: center;
+}
+
+.buyerPlan ul li::before {
+    content: "✔";
+    position: absolute;
+    left: 0;
+    color: #10b981;
+    font-size: 1.2rem;
+    line-height: 1;
+    /* Align vertically with text */
+}
+
+
+.buyerPlan button {
+    margin-top: 2rem;
+    background-color: #10b981;
+    /* Green accent for buyer */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.buyerPlan button:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+}
+
+
+
+/* Pro Plan Slider - Professional Ruler Style */
+.proSliderContainer {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sliderWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.slider {
+    width: 100%;
+    appearance: none;
+    height: 4px;
+    /* thin line */
+    border-radius: 2px;
+    background: #e5e7eb;
+    /* light gray */
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2563eb;
+    /* blue knob */
+    cursor: pointer;
+    border: none;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background: #1d4ed8;
+    transform: scale(1.1);
+}
+
+/* Tick marks below slider for only 10, 15, 20 */
+.ticks {
+  display: flex;
+  justify-content: space-between; /* 10 at start, 15 center, 20 end */
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.tick {
+  position: relative;
+  text-align: center;
+}
+
+.tick::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 6px;
+  background-color: #9ca3af; /* gray tick line */
+  border-radius: 1px;
+}
+
+.tick span {
+  display: block;
+  margin-top: 8px;
+}
+
+
+
+.closeButton {
+  position: absolute;
+  top: 1.5rem;
+  right: 3.8rem;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #374151; /* gray-700 */
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.closeButton:hover {
+  color: #111827; /* gray-900 */
+}

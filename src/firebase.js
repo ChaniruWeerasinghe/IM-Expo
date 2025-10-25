@@ -1,14 +1,22 @@
+// src/firebase.js
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDQo2a_uOTgTOJykLNvswF5pNWu88Ol_9s",
-  authDomain: "im-expo-1db71.firebaseapp.com",
-  projectId: "im-expo-1db71",
-  storageBucket: "im-expo-1db71.appspot.com",
-  messagingSenderId: "587634854925",
-  appId: "1:587634854925:web:21f82229665b1b491fd944"
+  apiKey: "AIzaSyCFXcJtYTjA3_K3D5sCXqFX7h14vrY3lVE",
+  authDomain: "im-expo-1e3fd.firebaseapp.com",
+  databaseURL: "https://im-expo-1e3fd-default-rtdb.firebaseio.com",
+  projectId: "im-expo-1e3fd",
+  storageBucket: "im-expo-1e3fd.firebasestorage.app",
+  messagingSenderId: "293295577473",
+  appId: "1:293295577473:web:f384b90c1c2acac9e8f080",
+  measurementId: "G-G4EZPN9KVG",
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getDatabase(app);
+const analytics = getAnalytics(app);
+export const auth = getAuth(app);          // <-- Authentication
+export const db = getDatabase(app);        // <-- Realtime Database
