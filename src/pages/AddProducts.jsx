@@ -7,7 +7,7 @@ const AddProducts = () => {
   const [product, setProduct] = useState({
     name: "",
     category: "Handmade",
-    pricePerUnit: "",
+    price: "",   // ✅ changed from pricePerUnit
     seller: "",
     image: "",
     description: "",
@@ -30,7 +30,7 @@ const AddProducts = () => {
       setProduct({
         name: "",
         category: "Handmade",
-        pricePerUnit: "",
+        price: "", // ✅ reset price
         seller: "",
         image: "",
         description: "",
@@ -78,9 +78,9 @@ const AddProducts = () => {
 
         <input
           type="number"
-          name="pricePerUnit"
-          placeholder="Price per unit"
-          value={product.pricePerUnit}
+          name="price" // ✅ changed from pricePerUnit
+          placeholder="Price"
+          value={product.price}
           onChange={handleChange}
           className="w-full p-3 border rounded-lg"
           required
