@@ -18,3 +18,4 @@ yarn-debug.log*
 yarn-error.log*
 "firebase-admin-setup/serviceAccountKey.json" 
 "firebase-admin-setup/serviceAccountKey.json" 
+"firebase-admin-setup/serviceAccountKey.json" 

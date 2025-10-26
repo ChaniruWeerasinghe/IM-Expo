@@ -25,6 +25,7 @@
     "firebase": "^12.4.0",
     "firebase-admin": "^13.5.0",
     "framer-motion": "^12.23.24",
+    "jspdf": "^3.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-firebase-hooks": "^5.1.1",
@@ -41,7 +42,6 @@
   "bugs": {
     "url": "https://github.com/mygptshared2024-code/IM-Expo-Platform/issues"
   },
-
   "browserslist": {
     "production": [
       ">0.2%",

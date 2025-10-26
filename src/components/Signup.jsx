@@ -5,9 +5,12 @@ import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("buyer"); // default
+  const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState(""); // optional for sellers
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -16,14 +19,18 @@ const Signup = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Save role in Firebase Realtime Database
+      // Save user info in Firebase under the role-based path
       await set(ref(db, `users/${role}s/${user.uid}`), {
+        uid: user.uid,
+        name,
         email,
         role,
-        uid: user.uid,
+        phone: phone || null,
+        company: role === "seller" ? company || null : null,
+        createdAt: new Date().toISOString(),
       });
 
-      // Redirect to unique URL
+      // Redirect to dashboard based on role
       if (role === "buyer") navigate(`/buyer/${user.uid}`);
       else if (role === "seller") navigate(`/seller/${user.uid}`);
     } catch (error) {
@@ -36,6 +43,14 @@ const Signup = () => {
     <div className="p-6 max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
       <form onSubmit={handleSignup} className="flex flex-col gap-4">
+        <input
+          type="text"
+          placeholder="Full Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="p-3 border rounded-lg"
+        />
         <input
           type="email"
           placeholder="Email"
@@ -58,6 +73,24 @@ const Signup = () => {
           <option value="buyer">Buyer</option>
           <option value="seller">Seller</option>
         </select>
+
+        {/* Optional fields */}
+        <input
+          type="text"
+          placeholder="Phone (optional)"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="p-3 border rounded-lg"
+        />
+        {role === "seller" && (
+          <input
+            type="text"
+            placeholder="Company (optional)"
+            value={company}
+            onChange={(e) => setCompany(e.target.value)}
+            className="p-3 border rounded-lg"
+          />
+        )}
 
         <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
           Sign Up

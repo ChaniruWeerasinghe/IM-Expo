@@ -1,14 +1,15 @@
 // src/pages/AddProducts.jsx
 import React, { useState } from "react";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { ref, push } from "firebase/database";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const AddProducts = () => {
+  const [user] = useAuthState(auth); // ✅ current logged-in seller
   const [product, setProduct] = useState({
     name: "",
-    category: "Handmade",
-    price: "",   // ✅ changed from pricePerUnit
-    seller: "",
+    category: "Beverages",
+    price: "",
     image: "",
     description: "",
   });
@@ -23,15 +24,25 @@ const AddProducts = () => {
     e.preventDefault();
     setSubmitted(false);
 
+    if (!user) {
+      alert("You must be logged in as a seller to add products.");
+      return;
+    }
+
     try {
       const productsRef = ref(db, "products");
-      await push(productsRef, product); // ✅ push data to Realtime DB
+      await push(productsRef, {
+        ...product,
+        price: parseFloat(product.price),
+        sellerUID: user.uid,
+        sellerEmail: user.email,
+        createdAt: new Date().toISOString(),
+      });
 
       setProduct({
         name: "",
-        category: "Handmade",
-        price: "", // ✅ reset price
-        seller: "",
+        category: "Beverages",
+        price: "",
         image: "",
         description: "",
       });
@@ -68,17 +79,30 @@ const AddProducts = () => {
           value={product.category}
           onChange={handleChange}
           className="w-full p-3 border rounded-lg"
+          required
         >
-          <option value="Handmade">Handmade</option>
-          <option value="Art">Art</option>
-          <option value="Food">Food</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Other">Other</option>
+          <option value="Beverages">Beverages</option>
+          <option value="Home Goods">Home Goods</option>
+          <option value="Apparel">Apparel</option>
+          <option value="Snacks">Snacks</option>
+          <option value="Spices">Spices</option>
+          <option value="Industrial Goods">Industrial Goods</option>
+          <option value="Eco Products">Eco Products</option>
+          <option value="Food & Beverages">Food & Beverages</option>
+          <option value="Handicrafts">Handicrafts</option>
+          <option value="Industrial Supplies">Industrial Supplies</option>
+          <option value="Food & Beauty">Food & Beauty</option>
+          <option value="Industrial & Health">Industrial & Health</option>
+          <option value="Decor">Decor</option>
+          <option value="Food Products">Food Products</option>
+          <option value="Home & Garden">Home & Garden</option>
+          <option value="Beauty & Wellness">Beauty & Wellness</option>
+          <option value="Aromatherapy">Aromatherapy</option>
         </select>
 
         <input
           type="number"
-          name="price" // ✅ changed from pricePerUnit
+          name="price"
           placeholder="Price"
           value={product.price}
           onChange={handleChange}
@@ -87,19 +111,9 @@ const AddProducts = () => {
         />
 
         <input
-          type="text"
-          name="seller"
-          placeholder="Seller Name"
-          value={product.seller}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-lg"
-          required
-        />
-
-        <input
           type="url"
           name="image"
-          placeholder="Image URL"
+          placeholder="Image URL (optional)"
           value={product.image}
           onChange={handleChange}
           className="w-full p-3 border rounded-lg"

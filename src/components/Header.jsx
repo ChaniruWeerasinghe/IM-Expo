@@ -1,9 +1,17 @@
 // src/components/Header.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
-const Header = () => {
+const Header = ({ currentUser }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/"); // redirect to home after logout
+  };
 
   return (
     <header className="bg-white shadow-md fixed w-full z-50">
@@ -19,13 +27,39 @@ const Header = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-6 items-center">
             <Link to="#features" className="text-gray-700 hover:text-green-500 transition">Features</Link>
-            <Link to="/products" className="text-gray-700 hover:text-green-500 transition">Products</Link>
-            <Link to="/signup" className="text-gray-700 hover:text-green-500 transition">Sign Up</Link>
-            <Link to="#contact" className="text-gray-700 hover:text-green-500 transition">Contact</Link>
-            <Link to="/seller" className="text-gray-700 hover:text-green-500 transition">Seller</Link>
-            <Link to="/buyer" className="text-gray-700 hover:text-green-500 transition">Buyer</Link>
+            <Link to="/resources" className="text-gray-700 hover:text-green-500 transition">Resources</Link>
             <Link to="/transactions" className="text-gray-700 hover:text-green-500 transition">Transactions</Link>
             <Link to="/portfolio" className="text-gray-700 hover:text-green-500 transition">Portfolio</Link>
+
+            {!currentUser && (
+              <>
+                <Link to="/login" className="text-gray-700 hover:text-green-500 transition">Login</Link>
+                <Link to="/signup" className="text-gray-700 hover:text-green-500 transition">Sign Up</Link>
+              </>
+            )}
+
+            {currentUser && (
+              <>
+                <button
+                  onClick={() => navigate(`/seller/${currentUser.uid}`)}
+                  className="text-gray-700 hover:text-green-500 transition"
+                >
+                  Seller
+                </button>
+                <button
+                  onClick={() => navigate(`/buyer/${currentUser.uid}`)}
+                  className="text-gray-700 hover:text-green-500 transition"
+                >
+                  Buyer
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-700 hover:text-red-500 transition"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -51,13 +85,39 @@ const Header = () => {
         <div className="md:hidden bg-white shadow-md">
           <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
             <Link to="#features" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Features</Link>
-            <Link to="/products" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Products</Link>
-            <Link to="/signup" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Sign Up</Link>
-            <Link to="#contact" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Contact</Link>
-            <Link to="/seller" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Seller</Link>
-            <Link to="/buyer" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Buyer</Link>
+            <Link to="/resources" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Resources</Link>
             <Link to="/transactions" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Transactions</Link>
             <Link to="/portfolio" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Portfolio</Link>
+
+            {!currentUser && (
+              <>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Login</Link>
+                <Link to="/signup" onClick={() => setIsOpen(false)} className="text-gray-700 hover:text-green-500 block">Sign Up</Link>
+              </>
+            )}
+
+            {currentUser && (
+              <>
+                <button
+                  onClick={() => { navigate(`/seller/${currentUser.uid}`); setIsOpen(false); }}
+                  className="text-gray-700 hover:text-green-500 block text-left w-full"
+                >
+                  Seller
+                </button>
+                <button
+                  onClick={() => { navigate(`/buyer/${currentUser.uid}`); setIsOpen(false); }}
+                  className="text-gray-700 hover:text-green-500 block text-left w-full"
+                >
+                  Buyer
+                </button>
+                <button
+                  onClick={() => { handleLogout(); setIsOpen(false); }}
+                  className="text-gray-700 hover:text-red-500 block text-left w-full"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

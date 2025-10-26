@@ -1,32 +1,29 @@
-// src/components/Portfolio.jsx
-import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
+// src/components/ExploreProducts.jsx
+import React, { useEffect, useState } from "react";
+import { db, auth } from "../firebase";
 import { ref, onValue, push } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Portfolio = () => {
+const ExploreProducts = ({ buyerUID }) => {
   const [products, setProducts] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // Fetch products from Firebase
+  // 🔹 Fetch all products
   useEffect(() => {
     const productsRef = ref(db, "products");
     const unsubscribe = onValue(productsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const list = Object.entries(data).map(([id, product]) => ({ id, ...product }));
-        setProducts(list);
-        setFiltered(list);
-      }
+      const data = snapshot.val() || {};
+      const list = Object.entries(data).map(([id, p]) => ({ ...p, id }));
+      setProducts(list);
+      setFiltered(list);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Filter products
+  // 🔹 Filter products based on search & category
   useEffect(() => {
     let result = products.filter((p) =>
       p.name.toLowerCase().includes(search.toLowerCase())
@@ -35,50 +32,33 @@ const Portfolio = () => {
     setFiltered(result);
   }, [search, category, products]);
 
-  // Contact seller
-  const contactSeller = (product) => {
-    if (!product.id || !product.seller) {
-      alert("Cannot send message: product or seller info missing.");
+  // 🔹 Add to cart (buyer must be logged in)
+  const handleAddToCart = async () => {
+    if (!auth.currentUser) {
+      alert("❌ You must be logged in as a buyer to add items to cart.");
       return;
     }
 
-    const message = prompt(
-      `Send a message to ${product.seller}:`,
-      "Hello, I am interested in your product."
-    );
-    if (message) {
-      const messagesRef = ref(db, "messages");
-      push(messagesRef, {
-        productId: product.id,
-        seller: product.seller,
-        message,
-        date: new Date().toISOString(),
-      });
-      alert("Message sent successfully!");
-    }
-  };
-
-  // Request import permission
-  const requestPermission = (product) => {
-    if (!product.id) {
-      alert("Cannot request permission: product ID missing.");
-      return;
-    }
-
-    const requestRef = ref(db, "importRequests");
-    push(requestRef, {
-      productId: product.id,
-      productName: product.name,
-      date: new Date().toISOString(),
+    const cartRef = ref(db, `carts/${buyerUID}`);
+    await push(cartRef, {
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
+      price: selectedProduct.price || 0,
+      buyerUID,
+      quantity: 1,
+      dateAdded: new Date().toISOString(),
+      sellerEmail: selectedProduct.sellerEmail || "",
     });
-    alert(`Import permission request sent for: ${product.name}`);
+
+    alert("✅ Added to cart!");
+    setSelectedProduct(null);
   };
 
   return (
     <section className="px-4 py-16 max-w-7xl mx-auto">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-        Portfolio / Products
-      </h2>
+      <h1 className="text-3xl font-bold text-center text-green-600 mb-8">
+        Explore Products
+      </h1>
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-8">
@@ -151,7 +131,7 @@ const Portfolio = () => {
         <p className="text-gray-500 text-center">No products found.</p>
       )}
 
-      {/* Modal for product details */}
+      {/* Product Modal */}
       <AnimatePresence>
         {selectedProduct && (
           <motion.div
@@ -182,23 +162,17 @@ const Portfolio = () => {
               <h3 className="text-xl font-bold text-green-600">{selectedProduct.name}</h3>
               <p className="text-gray-600 mb-2">{selectedProduct.category}</p>
               <p className="font-semibold text-gray-700 mb-4">${selectedProduct.price}</p>
-              <p className="text-gray-700 mb-4">
-                {selectedProduct.description || "No description provided."}
-              </p>
-              <div className="flex gap-4">
+              {selectedProduct.description && (
+                <p className="text-gray-700 mb-4">{selectedProduct.description}</p>
+              )}
+              {auth.currentUser && (
                 <button
-                  className="flex-1 bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition"
-                  onClick={() => contactSeller(selectedProduct)}
+                  onClick={handleAddToCart}
+                  className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition w-full"
                 >
-                  Contact Seller
+                  Add to Cart
                 </button>
-                <button
-                  className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition"
-                  onClick={() => requestPermission(selectedProduct)}
-                >
-                  Request Import Permission
-                </button>
-              </div>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -207,4 +181,4 @@ const Portfolio = () => {
   );
 };
 
-export default Portfolio;
+export default ExploreProducts;
