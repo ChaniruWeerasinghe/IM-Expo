@@ -1,6 +1,7 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase";
 import { HashLink } from "react-router-hash-link";
@@ -13,6 +14,17 @@ import Resources from "./pages/Resources/Resources";
 import Portfolio from "./components/Portfolio";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ExploreProducts from "./components/ExploreProducts";
+import Subscriptions from "./pages/Subscriptions"; 
+import AdminDashboard from "./components/AdminDashboard";
+import AdminLogin from "./components/AdminLogin";
+import InitSubscriptions from "./pages/InitSubscriptions";
+import Payment from "./components/Payment";
+
+
+
+
+
+
 
 // Login & Signup
 import Login from "./components/Login";
@@ -215,6 +227,28 @@ const App = () => {
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/subscriptions" element={<Subscriptions />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/init-subscriptions" element={<InitSubscriptions />} />
+        <Route path="/subscriptions" element={<Subscriptions />} />
+<Route path="/subscriptions/pay" element={<Payment />} />
+
+
+{/* Protected Admin Route */}
+<Route
+  path="/admin"
+  element={
+    localStorage.getItem("isAdmin") === "true" ? (
+      <AdminDashboard />
+    ) : (
+      <Navigate to="/admin-login" />
+    )
+  }
+/>
+
+
+
       </Routes>
     </Router>
   );

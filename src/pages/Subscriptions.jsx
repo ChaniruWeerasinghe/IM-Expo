@@ -1,9 +1,7 @@
+// src/components/Subscriptions.jsx
 import React, { useState } from "react";
-import styles from "./Subscriptions.module.css"; // Import CSS module
-import { useNavigate } from "react-router-dom";
-
-
-
+import { useNavigate, useLocation } from "react-router-dom";
+import styles from "./Subscriptions.module.css"; // keep your existing module css
 
 const subscriptions = [
   {
@@ -22,7 +20,12 @@ const subscriptions = [
     type: "Pro",
     credits: 10,
     price: "$25 / month",
-    features: ["10 product uploads", "Priority support", "Verified seller badge", "Full analytics"],
+    features: [
+      "10+ product uploads",
+      "Priority support",
+      "Verified seller badge",
+      "Full analytics",
+    ],
   },
 ];
 
@@ -33,10 +36,26 @@ const buyerPlan = {
 };
 
 const Subscriptions = () => {
-
   const [proCredits, setProCredits] = useState(10);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // try to read seller ID from query string (header or seller dashboard should pass it)
+  const queryParams = new URLSearchParams(location.search);
+  const sellerUID = queryParams.get("seller") || null;
+
+  // When user clicks Subscribe — redirect to payment page (pass plan + sellerUID + credits)
+  const handleSubscribe = (plan) => {
+    const credits = plan.type === "Pro" ? proCredits : plan.credits;
+    const params = new URLSearchParams({
+      plan: plan.type,
+      credits: String(credits),
+    });
+    if (sellerUID) params.set("seller", sellerUID);
+
+    // navigate to payment page — Payment component will handle writing to Firebase after (dummy) card entry
+    navigate(`/subscriptions/pay?${params.toString()}`);
+  };
 
   return (
     <div className={styles.container}>
@@ -44,6 +63,7 @@ const Subscriptions = () => {
       <div className={styles.closeButton} onClick={() => navigate("/")}>
         ×
       </div>
+
       <div className={styles.heading}>
         <h2 className={styles.title}>Subscription Plans</h2>
         <p className={styles.description}>
@@ -58,7 +78,7 @@ const Subscriptions = () => {
           <div key={plan.type} className={styles.planCard}>
             <h3 className={styles.planTitle}>{plan.type}</h3>
 
-            {/* Dynamic credits for Pro plan */}
+            {/* Dynamic pricing for Pro plan */}
             {plan.type === "Pro" ? (
               <div className={styles.proSliderContainer}>
                 <p className={styles.planPrice}>
@@ -90,16 +110,19 @@ const Subscriptions = () => {
               </>
             )}
 
-
-
             <ul className={styles.planFeatures}>
               {plan.features.map((feature, idx) => (
                 <li key={idx}>{feature}</li>
               ))}
             </ul>
-            <button className={styles.planButton}>Subscribe</button>
-          </div>
 
+            <button
+              className={styles.planButton}
+              onClick={() => handleSubscribe(plan)}
+            >
+              Subscribe
+            </button>
+          </div>
         ))}
       </div>
 
@@ -112,12 +135,11 @@ const Subscriptions = () => {
             <li key={idx}>{feature}</li>
           ))}
         </ul>
-        <button className={styles.planButton}>Subscribe</button>
+        <button className={styles.planButton} onClick={() => navigate("/subscriptions/buyer")}>
+          Subscribe
+        </button>
       </div>
-
-
     </div>
-
   );
 };
 

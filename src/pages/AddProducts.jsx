@@ -1,11 +1,11 @@
-// src/pages/AddProducts.jsx
 import React, { useState } from "react";
 import { db, auth } from "../firebase";
-import { ref, push } from "firebase/database";
+import { ref, push, get, update } from "firebase/database";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { useNavigate } from "react-router-dom";
 
 const AddProducts = () => {
-  const [user] = useAuthState(auth); // ✅ current logged-in seller
+  const [user] = useAuthState(auth); 
   const [product, setProduct] = useState({
     name: "",
     category: "Beverages",
@@ -15,6 +15,7 @@ const AddProducts = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setProduct({ ...product, [e.target.name]: e.target.value });
@@ -30,6 +31,23 @@ const AddProducts = () => {
     }
 
     try {
+      // 1️⃣ Get seller subscription
+      const subSnap = await get(ref(db, `subscriptions/sellers/${user.uid}`));
+      const sub = subSnap.val();
+
+      if (!sub) {
+        alert("No subscription found. Please contact support.");
+        return;
+      }
+
+      // 2️⃣ Block if no credits left
+      if (sub.credits <= 0) {
+        alert("❌ You've reached your free upload limit. Please upgrade your plan before adding more products.");
+        navigate("/subscriptions");
+        return;
+      }
+
+      // 3️⃣ Upload product
       const productsRef = ref(db, "products");
       await push(productsRef, {
         ...product,
@@ -37,6 +55,12 @@ const AddProducts = () => {
         sellerUID: user.uid,
         sellerEmail: user.email,
         createdAt: new Date().toISOString(),
+      });
+
+      // 4️⃣ Update credits
+      await update(ref(db, `subscriptions/sellers/${user.uid}`), {
+        usedCredits: (sub.usedCredits || 0) + 1,
+        credits: sub.credits - 1,
       });
 
       setProduct({
@@ -90,14 +114,8 @@ const AddProducts = () => {
           <option value="Eco Products">Eco Products</option>
           <option value="Food & Beverages">Food & Beverages</option>
           <option value="Handicrafts">Handicrafts</option>
-          <option value="Industrial Supplies">Industrial Supplies</option>
-          <option value="Food & Beauty">Food & Beauty</option>
-          <option value="Industrial & Health">Industrial & Health</option>
-          <option value="Decor">Decor</option>
-          <option value="Food Products">Food Products</option>
           <option value="Home & Garden">Home & Garden</option>
           <option value="Beauty & Wellness">Beauty & Wellness</option>
-          <option value="Aromatherapy">Aromatherapy</option>
         </select>
 
         <input

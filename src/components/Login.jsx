@@ -11,6 +11,18 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // 🔐 Check hardcoded admin first
+    const adminEmail = "admin@imexpo.com";
+    const adminPassword = "imexpo123";
+
+    if (email === adminEmail && password === adminPassword) {
+      localStorage.setItem("isAdmin", "true");
+      navigate("/admin");
+      return;
+    }
+
+    // 🔹 Normal Firebase login for buyers/sellers
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;

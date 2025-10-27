@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { db, auth } from "../firebase";
 import { signOut } from "firebase/auth";
-
 import {
   ref,
   onValue,
@@ -37,11 +36,10 @@ const SellerDashboard = () => {
   const [sellerInfo, setSellerInfo] = useState({ name: "Seller Name", email: "" });
   const [stats, setStats] = useState({ totalProducts: 0, totalSales: 0, pendingOrders: 0 });
   const [collapsed, setCollapsed] = useState(false);
-
-  // NEW: Seller-specific order requests
+  const [subscription, setSubscription] = useState(null);
   const [orderRequests, setOrderRequests] = useState([]);
 
-  // 🔹 Logout function
+  // Logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -52,10 +50,17 @@ const SellerDashboard = () => {
     }
   };
 
+  // Main data fetch
   useEffect(() => {
     if (!uid) return;
 
     const sellerRef = ref(db, `users/sellers/${uid}`);
+    const subRef = ref(db, `subscriptions/sellers/${uid}`);
+    const productsQuery = query(ref(db, "products"), orderByChild("sellerUID"), equalTo(uid));
+    const transQuery = query(ref(db, "transactions"), orderByChild("sellerUID"), equalTo(uid));
+    const ordersQuery = query(ref(db, "orderRequests"), orderByChild("sellerUID"), equalTo(uid));
+
+    // Seller info
     onValue(sellerRef, (snapshot) => {
       const data = snapshot.val();
       if (data)
@@ -66,7 +71,22 @@ const SellerDashboard = () => {
         });
     });
 
-    const productsQuery = query(ref(db, "products"), orderByChild("sellerUID"), equalTo(uid));
+    // Subscription
+    onValue(subRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setSubscription(data);
+      } else {
+        setSubscription({
+          plan: "Free",
+          credits: 0,
+          maxFreeCredits: 5,
+          status: "inactive",
+        });
+      }
+    });
+
+    // Products
     onValue(productsQuery, (snapshot) => {
       const data = snapshot.val() || {};
       const sellerProducts = Object.entries(data).map(([key, p]) => ({ ...p, id: key }));
@@ -74,7 +94,7 @@ const SellerDashboard = () => {
       setStats((prev) => ({ ...prev, totalProducts: sellerProducts.length }));
     });
 
-    const transQuery = query(ref(db, "transactions"), orderByChild("sellerUID"), equalTo(uid));
+    // Transactions
     onValue(transQuery, (snapshot) => {
       const data = snapshot.val() || {};
       const sellerTx = Object.values(data);
@@ -85,22 +105,24 @@ const SellerDashboard = () => {
       setStats((prev) => ({ ...prev, totalSales, pendingOrders }));
     });
 
-    // NEW: Fetch seller-specific order requests
-    const ordersQuery = query(ref(db, "orderRequests"), orderByChild("sellerUID"), equalTo(uid));
+    // Orders
     onValue(ordersQuery, (snapshot) => {
       const data = snapshot.val() || {};
       const requests = Object.entries(data).map(([id, req]) => ({ id, ...req }));
       setOrderRequests(requests);
     });
 
+    // Cleanup
     return () => {
       off(sellerRef);
+      off(subRef);
       off(productsQuery);
       off(transQuery);
       off(ordersQuery);
     };
   }, [uid]);
 
+  // Chart data
   const salesData = transactions
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .map((t) => ({ date: t.date, amount: Number(t.amount) }));
@@ -112,16 +134,15 @@ const SellerDashboard = () => {
   const categoryData = Object.entries(categoryCount).map(([name, value]) => ({ name, value }));
   const COLORS = ["#4ade80", "#60a5fa", "#facc15", "#f87171", "#a78bfa"];
 
+  // Edit modal handlers
   const openEditModal = (product) => {
     setSelectedProduct(product);
     setEditData(product);
   };
-
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
   };
-
   const handleSaveChanges = async () => {
     if (!selectedProduct) return;
     try {
@@ -134,7 +155,6 @@ const SellerDashboard = () => {
       alert("❌ Failed to update product.");
     }
   };
-
   const handleDeleteProduct = async () => {
     if (!selectedProduct) return;
     if (window.confirm("Are you sure you want to delete this product?")) {
@@ -150,7 +170,7 @@ const SellerDashboard = () => {
     }
   };
 
-  // NEW: Approve/Reject order requests and update buyer transaction
+  // Orders approve/reject
   const handleRequestUpdate = async (requestId, newStatus) => {
     try {
       const reqRef = ref(db, `orderRequests/${requestId}`);
@@ -194,14 +214,14 @@ const SellerDashboard = () => {
       >
         <div className="flex flex-col items-center mt-2">
           <button
-            className="p-3 text-gray-700 hover:text-green-500 focus:outline-none"
+            className="p-3 text-gray-700 hover:text-green-500"
             onClick={() => navigate("/")}
             title="Home"
           >
             🏠
           </button>
           <button
-            className="mt-2 p-3 text-gray-700 hover:text-green-500 focus:outline-none"
+            className="mt-2 p-3 text-gray-700 hover:text-green-500"
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? "☰" : "✕"}
@@ -222,45 +242,72 @@ const SellerDashboard = () => {
             >
               <span className="text-xl">{item.icon}</span>
               {!collapsed && <span className="ml-3 font-medium">{item.name}</span>}
-              {collapsed && (
-                <span className="absolute left-[-120px] w-max bg-white text-gray-800 font-medium shadow-lg rounded px-3 py-1 opacity-0 group-hover:opacity-100 transition">
-                  {item.name}
-                </span>
-              )}
             </Link>
           ))}
 
-          {/* Logout Button */}
+          {/* Logout */}
           <button
             onClick={handleLogout}
-            className="group relative flex items-center w-full px-4 py-3 text-gray-700 hover:bg-red-100 rounded transition mt-auto"
+            className="flex items-center w-full px-4 py-3 text-gray-700 hover:bg-red-100 rounded mt-auto"
           >
             <span className="text-xl">🚪</span>
             {!collapsed && <span className="ml-3 font-medium text-red-600">Logout</span>}
-            {collapsed && (
-              <span className="absolute left-[-120px] w-max bg-white text-gray-800 font-medium shadow-lg rounded px-3 py-1 opacity-0 group-hover:opacity-100 transition">
-                Logout
-              </span>
-            )}
           </button>
         </nav>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 p-6 md:p-10 mr-0 md:mr-64">
-        {/* Seller Info */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-2xl font-bold text-white shadow-md">
-            {sellerInfo.name.charAt(0)}
-          </div>
-          <div className="flex flex-col gap-1 text-left">
-            <h2 className="text-2xl font-semibold text-gray-800">{sellerInfo.name}</h2>
-            {sellerInfo.company && (
-              <p className="text-gray-500 italic font-medium">{sellerInfo.company}</p>
-            )}
-            <p className="text-gray-600 font-normal">{sellerInfo.email}</p>
-          </div>
-        </div>
+        {/* Seller Info + Subscription */}
+<div className="bg-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
+  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-2xl font-bold text-white shadow-md">
+    {sellerInfo.name.charAt(0)}
+  </div>
+
+  <div className="flex flex-col gap-1 text-left">
+    <h2 className="text-2xl font-semibold text-gray-800">{sellerInfo.name}</h2>
+
+    {sellerInfo.company && (
+      <p className="text-gray-500 italic font-medium">{sellerInfo.company}</p>
+    )}
+
+    <p className="text-gray-600 font-normal">{sellerInfo.email}</p>
+
+    {subscription && (
+      <div className="mt-2 bg-green-50 border border-green-200 p-3 rounded-md text-sm">
+        <p>
+          <strong>Plan:</strong> {subscription.plan}
+        </p>
+        <p>
+          <strong>Credits Left:</strong> {subscription.credits} /{" "}
+          {subscription.maxFreeCredits}
+        </p>
+        <p>
+          <strong>Status:</strong>{" "}
+          <span
+            className={`font-semibold ${
+              subscription.status === "active"
+                ? "text-green-600"
+                : "text-red-500"
+            }`}
+          >
+            {subscription.status}
+          </span>
+        </p>
+
+        {/* 🔽 Added Upgrade Plan Button Here */}
+        {subscription.credits <= 0 && (
+          <button
+            onClick={() => navigate(`/subscriptions?seller=${uid}`)}
+            className="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
+          >
+            Upgrade Plan
+          </button>
+        )}
+      </div>
+    )}
+  </div>
+</div>
 
         {/* Add Product Button */}
         <div className="mb-6">
@@ -346,7 +393,7 @@ const SellerDashboard = () => {
           )}
         </div>
 
-        {/* NEW: Seller Order Requests */}
+        {/* Seller Order Requests */}
         {orderRequests.length > 0 && (
           <div className="mt-8">
             <h2 className="text-2xl font-semibold mb-4">Order Requests</h2>
