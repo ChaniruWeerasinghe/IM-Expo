@@ -4,41 +4,83 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-100 text-gray-700 mt-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-center md:items-start space-y-6 md:space-y-0">
-          
+    <footer className="bg-gray-100 text-gray-700 mt-12 border-t border-gray-200">
+      <div className="w-full px-6 lg:px-16 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+
           {/* Logo & Description */}
-          <div className="text-center md:text-left">
-            <h2 className="text-green-600 font-bold text-2xl mb-2">IM-Expo</h2>
-            <p className="text-gray-600 max-w-xs">
+          <div>
+            <h2 className="text-green-600 font-bold text-2xl mb-3">IM-Expo</h2>
+            <p className="text-gray-600 mb-4 max-w-xs">
               Showcase your talent, connect with verified buyers, and grow your business worldwide.
             </p>
+
+            {/* Social Links */}
+            <div className="flex justify-center md:justify-start space-x-4 mt-4">
+              <a href="#" className="text-gray-500 hover:text-green-500 transition">
+                <i className="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" className="text-gray-500 hover:text-green-500 transition">
+                <i className="fab fa-instagram"></i>
+              </a>
+              <a href="#" className="text-gray-500 hover:text-green-500 transition">
+                <i className="fab fa-linkedin-in"></i>
+              </a>
+            </div>
           </div>
 
-          {/* Links */}
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-12">
-            <div className="flex flex-col space-y-2 text-center md:text-left">
-              <h3 className="font-semibold">Company</h3>
-              <Link to="/" className="hover:text-green-500 transition">Home</Link>
-              <Link to="#features" className="hover:text-green-500 transition">Features</Link>
-              <Link to="/products" className="hover:text-green-500 transition">Products</Link>
-              <Link to="/signup" className="hover:text-green-500 transition">Sign Up</Link>
-            </div>
+          {/* Company */}
+          <div className="text-center md:text-left">
+            <h3 className="font-semibold text-gray-800 mb-3">Company</h3>
+            <ul className="space-y-2">
+              <li><Link to="/" className="hover:text-green-500 transition">Home</Link></li>
+              <li><Link to="#features" className="hover:text-green-500 transition">Features</Link></li>
+              <li><Link to="/about" className="hover:text-green-500 transition">About Us</Link></li>
+              <li><Link to="/signup" className="hover:text-green-500 transition">Join Us</Link></li>
+            </ul>
+          </div>
 
-            <div className="flex flex-col space-y-2 text-center md:text-left">
-              <h3 className="font-semibold">Dashboard</h3>
-              <Link to="/seller" className="hover:text-green-500 transition">Seller</Link>
-              <Link to="/buyer" className="hover:text-green-500 transition">Buyer</Link>
-              <Link to="/transactions" className="hover:text-green-500 transition">Transactions</Link>
-              <Link to="/portfolio" className="hover:text-green-500 transition">Portfolio</Link>
-            </div>
+          {/* Support */}
+          <div className="text-center md:text-left">
+            <h3 className="font-semibold text-gray-800 mb-3">Support</h3>
+            <ul className="space-y-2">
+              <li><Link to="/contact" className="hover:text-green-500 transition">Contact Us</Link></li>
+              <li><Link to="/faq" className="hover:text-green-500 transition">FAQ</Link></li>
+              <li><Link to="/terms" className="hover:text-green-500 transition">Terms & Policies</Link></li>
+              <li><Link to="/help" className="hover:text-green-500 transition">Help Center</Link></li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div className="text-center md:text-left">
+            <h3 className="font-semibold text-gray-800 mb-3">Stay Connected</h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Subscribe to receive updates and trade insights.
+            </p>
+            <form className="flex items-center justify-center md:justify-start">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="px-4 py-2 w-2/3 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <button
+                type="submit"
+                className="bg-green-500 text-white px-4 py-2 rounded-r-lg hover:bg-green-600 transition"
+              >
+                Subscribe
+              </button>
+            </form>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-8 border-t border-gray-300 pt-6 text-center text-gray-500 text-sm">
-          &copy; {new Date().getFullYear()} IM-Expo. All rights reserved.
+        {/* Bottom Bar */}
+        <div className="mt-10 border-t border-gray-300 pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+          <p>&copy; {new Date().getFullYear()} IM-Expo. All rights reserved.</p>
+          <div className="flex space-x-4 mt-3 md:mt-0">
+            <Link to="/privacy" className="hover:text-green-500 transition">Privacy Policy</Link>
+            <Link to="/terms" className="hover:text-green-500 transition">Terms of Use</Link>
+            <span className="text-gray-400">Made in Sri Lanka</span>
+          </div>
         </div>
       </div>
     </footer>

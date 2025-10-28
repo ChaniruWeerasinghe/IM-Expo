@@ -3,15 +3,15 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
-import { HashLink } from "react-router-hash-link";
 
 const Header = ({ currentUser }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
+  
   const handleLogout = async () => {
     await signOut(auth);
-    navigate("/"); // redirect to home after logout
+    navigate("/"); // Redirect to home after logout
   };
 
   // ✅ Navigate to Plans (with seller UID if logged in)
@@ -25,8 +25,9 @@ const Header = ({ currentUser }) => {
 
   return (
     <header className="bg-white shadow-md fixed w-full z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-6 lg:px-12">
         <div className="flex justify-between h-16 items-center">
+
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="text-green-600 font-bold text-xl">
@@ -36,17 +37,28 @@ const Header = ({ currentUser }) => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-6 items-center">
-            <Link to="#features" className="text-gray-700 hover:text-green-500 transition">
+            <Link
+              to="/discover"
+              className="text-gray-700 hover:text-green-500 transition"
+            >
               Discover
             </Link>
-            <Link to="/resources" className="text-gray-700 hover:text-green-500 transition">
+
+            <Link
+              to="/resources"
+              className="text-gray-700 hover:text-green-500 transition"
+            >
               Resources
             </Link>
-            <Link to="/portfolio" className="text-gray-700 hover:text-green-500 transition">
+
+            <Link
+              to="/portfolio"
+              className="text-gray-700 hover:text-green-500 transition"
+            >
               Portfolio
             </Link>
 
-            {/* ✅ Updated Plans Link */}
+            {/* ✅ Plans Button */}
             <button
               onClick={handlePlansClick}
               className="text-gray-700 hover:text-green-500 transition"
@@ -54,18 +66,23 @@ const Header = ({ currentUser }) => {
               Plans
             </button>
 
-            {!currentUser && (
+            {/* Authentication Links */}
+            {!currentUser ? (
               <>
-                <Link to="/login" className="text-gray-700 hover:text-green-500 transition">
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-green-500 transition"
+                >
                   Login
                 </Link>
-                <Link to="/signup" className="text-gray-700 hover:text-green-500 transition">
+                <Link
+                  to="/signup"
+                  className="text-gray-700 hover:text-green-500 transition"
+                >
                   Sign Up
                 </Link>
               </>
-            )}
-
-            {currentUser && (
+            ) : (
               <>
                 <button
                   onClick={() => navigate(`/seller/${currentUser.uid}`)}
@@ -89,13 +106,18 @@ const Header = ({ currentUser }) => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="text-gray-700 hover:text-green-500 focus:outline-none"
             >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 {isOpen ? (
                   <path
                     strokeLinecap="round"
@@ -120,14 +142,16 @@ const Header = ({ currentUser }) => {
       {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-white shadow-md">
-          <div className="px-2 pt-2 pb-3 space-y-1 flex flex-col">
+          <div className="px-4 pt-3 pb-4 space-y-2 flex flex-col">
+
             <Link
-              to="#features"
+              to="/discover"
               onClick={() => setIsOpen(false)}
               className="text-gray-700 hover:text-green-500 block"
             >
               Discover
             </Link>
+
             <Link
               to="/resources"
               onClick={() => setIsOpen(false)}
@@ -135,6 +159,7 @@ const Header = ({ currentUser }) => {
             >
               Resources
             </Link>
+
             <Link
               to="/portfolio"
               onClick={() => setIsOpen(false)}
@@ -143,7 +168,7 @@ const Header = ({ currentUser }) => {
               Portfolio
             </Link>
 
-            {/* ✅ Updated Plans Link for Mobile */}
+            {/* ✅ Plans Link for Mobile */}
             <button
               onClick={() => {
                 handlePlansClick();
@@ -154,7 +179,8 @@ const Header = ({ currentUser }) => {
               Plans
             </button>
 
-            {!currentUser && (
+            {/* Authentication Links */}
+            {!currentUser ? (
               <>
                 <Link
                   to="/login"
@@ -171,9 +197,7 @@ const Header = ({ currentUser }) => {
                   Sign Up
                 </Link>
               </>
-            )}
-
-            {currentUser && (
+            ) : (
               <>
                 <button
                   onClick={() => {
@@ -184,6 +208,7 @@ const Header = ({ currentUser }) => {
                 >
                   Seller
                 </button>
+
                 <button
                   onClick={() => {
                     navigate(`/buyer/${currentUser.uid}`);
@@ -193,6 +218,7 @@ const Header = ({ currentUser }) => {
                 >
                   Buyer
                 </button>
+
                 <button
                   onClick={() => {
                     handleLogout();

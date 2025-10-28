@@ -14,17 +14,12 @@ import Resources from "./pages/Resources/Resources";
 import Portfolio from "./components/Portfolio";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ExploreProducts from "./components/ExploreProducts";
-import Subscriptions from "./pages/Subscriptions"; 
+import Subscriptions from "./pages/Subscriptions";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminLogin from "./components/AdminLogin";
 import InitSubscriptions from "./pages/InitSubscriptions";
 import Payment from "./components/Payment";
-
-
-
-
-
-
+import Discover from "./pages/Discover";
 
 // Login & Signup
 import Login from "./components/Login";
@@ -38,131 +33,9 @@ import Footer from "./components/Footer";
 import SellerDashboard from "./components/SellerDashboard";
 import BuyerDashboard from "./components/BuyerDashboard";
 
-// ---------------- Home Page ----------------
-const HomePage = ({ currentUser }) => {
-  return (
-    <div className="font-roboto bg-gray-50 text-gray-800">
-      <Header currentUser={currentUser} logout={() => signOut(auth)} />
 
-      {/* Hero Section */}
-      <section className="flex flex-col items-center text-center py-24 px-4 bg-gradient-to-r from-green-500 to-cyan-500 text-white">
-        <h2 className="text-4xl md:text-5xl mb-4 font-bold">
-          Showcase Your Talent. Connect With Verified Buyers.
-        </h2>
-        <p className="text-lg md:text-xl mb-8 max-w-xl">
-          IM-Expo helps talented individuals and local sellers display their work while connecting with buyers and import/export partners.
-        </p>
 
-        {/* Hero Buttons */}
-        <div className="flex flex-wrap gap-4 justify-center">
-          <HashLink
-            smooth
-            to={currentUser ? `/seller/${currentUser.uid}` : "/login"}
-            className="bg-white text-green-500 px-6 py-3 rounded-lg hover:bg-gray-100 transition"
-          >
-            Get Started
-          </HashLink>
 
-          <HashLink
-            smooth
-            to={currentUser ? `/buyer/${currentUser.uid}` : "/login"}
-            className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
-          >
-            Explore Products
-          </HashLink>
-
-          <HashLink
-            smooth
-            to="#features"
-            className="bg-white text-green-500 px-6 py-3 rounded-lg hover:bg-gray-100 transition"
-          >
-            Learn More
-          </HashLink>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="grid gap-8 px-4 py-16 max-w-6xl mx-auto md:grid-cols-3" id="features">
-        {/* Feature Cards */}
-        <div className="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transform hover:-translate-y-1 transition">
-          <h3 className="text-green-500 text-xl mb-4">Talent Showcase</h3>
-          <p>Upload your products or work and get discovered by buyers and importers worldwide.</p>
-        </div>
-        <div className="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transform hover:-translate-y-1 transition">
-          <h3 className="text-green-500 text-xl mb-4">Verified Buyers</h3>
-          <p>Connect with trusted, verified buyers and import/export partners for secure transactions.</p>
-        </div>
-        <div className="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transform hover:-translate-y-1 transition">
-          <h3 className="text-green-500 text-xl mb-4">Subscription Plans</h3>
-          <p>Flexible plans to suit everyone—from newcomers to established sellers—maximize your reach.</p>
-        </div>
-      </section>
-
-      {/* 🌍 Why IM-Expo Section */}
-      <section className="bg-white py-20 px-6 border-t border-gray-200">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
-            Why IM-Expo is Different
-          </h2>
-          <p className="text-gray-600 max-w-3xl mx-auto mb-12">
-            We’re not just another trade platform. IM-Expo was built to remove middlemen, empower small producers, 
-            and create direct, verified connections that actually build trust — not just traffic.
-          </p>
-          {/* USP Grid */}
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="p-8 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition">
-              <h3 className="text-green-600 text-xl font-semibold mb-4">Verified Network</h3>
-              <p>Every buyer and seller is verified. You trade with real, trusted partners — no fakes or ghost accounts.</p>
-            </div>
-            <div className="p-8 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition">
-              <h3 className="text-green-600 text-xl font-semibold mb-4">Direct Connections</h3>
-              <p>No commissions, no agents. IM-Expo lets you communicate and trade directly, keeping profits in your hands.</p>
-            </div>
-            <div className="p-8 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition">
-              <h3 className="text-green-600 text-xl font-semibold mb-4">Smart Matchmaking</h3>
-              <p>Our system connects local producers to importers actively seeking their type of products — intelligently and fairly.</p>
-            </div>
-          </div>
-
-          {/* Discover How It Works Button */}
-          <HashLink
-            smooth
-            to="/resources#how-it-works"
-            scroll={el => {
-              const yOffset = -80;
-              const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-              window.scrollTo({ top: y, behavior: 'smooth' });
-            }}
-            className="mt-8 inline-block bg-green-500 text-white px-8 py-3 rounded-full font-medium hover:bg-green-600 transition"
-          >
-            Discover How It Works
-          </HashLink>
-        </div>
-      </section>
-
-      {/* Resources Section */}
-      <section className="px-4 py-16 max-w-6xl mx-auto text-center">
-        <h2 className="text-3xl text-gray-900 mb-8">Resources & Guides</h2>
-        <p className="text-gray-600 mb-6">Export/import guides, seller tips, and buyer insights.</p>
-
-        <HashLink
-          smooth
-          to="/resources#resource-grid"
-          scroll={el => {
-            const yOffset = -80;
-            const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-          }}
-          className="inline-block bg-green-500 text-white px-8 py-3 rounded-full hover:bg-green-600 transition"
-        >
-          Explore Resources
-        </HashLink>
-      </section>
-
-      <Footer />
-    </div>
-  );
-};
 
 // ---------------- App ----------------
 const App = () => {
@@ -232,20 +105,23 @@ const App = () => {
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/init-subscriptions" element={<InitSubscriptions />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
-<Route path="/subscriptions/pay" element={<Payment />} />
+        <Route path="/subscriptions/pay" element={<Payment />} />
 
 
-{/* Protected Admin Route */}
-<Route
-  path="/admin"
-  element={
-    localStorage.getItem("isAdmin") === "true" ? (
-      <AdminDashboard />
-    ) : (
-      <Navigate to="/admin-login" />
-    )
-  }
-/>
+        {/* Protected Admin Route */}
+        <Route
+          path="/admin"
+          element={
+            localStorage.getItem("isAdmin") === "true" ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/admin-login" />
+            )
+          }
+        />
+
+        <Route path="/discover" element={<Discover />} />
+
 
 
 
@@ -253,6 +129,144 @@ const App = () => {
     </Router>
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+// ---------------- Home Page ----------------
+const HomePage = ({ currentUser }) => {
+  return (
+    <div className="font-roboto bg-gray-50 text-gray-800">
+      <Header currentUser={currentUser} logout={() => signOut(auth)} />
+
+      {/* Hero Section */}
+      <section className="flex flex-col items-center text-center py-24 px-4 bg-gradient-to-r from-green-500 to-cyan-500 text-white">
+        <h2 className="text-4xl md:text-5xl mb-4 font-bold">
+          Showcase Your Talent. Connect With Verified Buyers.
+        </h2>
+        <p className="text-lg md:text-xl mb-8 max-w-xl">
+          IM-Expo helps talented individuals and local sellers display their work while connecting with buyers and import/export partners.
+        </p>
+
+        {/* Hero Buttons */}
+        <div className="flex flex-wrap gap-4 justify-center">
+          <HashLink
+            smooth
+            to={currentUser ? `/seller/${currentUser.uid}` : "/login"}
+            className="bg-white text-green-500 px-6 py-3 rounded-lg hover:bg-gray-100 transition"
+          >
+            Get Started
+          </HashLink>
+
+          <HashLink
+            smooth
+            to={currentUser ? `/buyer/${currentUser.uid}` : "/login"}
+            className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
+          >
+            Explore Products
+          </HashLink>
+
+          <HashLink
+            smooth
+            to="#features"
+            className="bg-white text-green-500 px-6 py-3 rounded-lg hover:bg-gray-100 transition"
+          >
+            Learn More
+          </HashLink>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="grid gap-8 px-4 py-16 max-w-6xl mx-auto md:grid-cols-3" id="features">
+        {/* Feature Cards */}
+        <div className="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transform hover:-translate-y-1 transition">
+          <h3 className="text-green-500 text-xl mb-4">Talent Showcase</h3>
+          <p>Upload your products or work and get discovered by buyers and importers worldwide.</p>
+        </div>
+        <div className="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transform hover:-translate-y-1 transition">
+          <h3 className="text-green-500 text-xl mb-4">Verified Buyers</h3>
+          <p>Connect with trusted, verified buyers and import/export partners for secure transactions.</p>
+        </div>
+        <div className="bg-white p-8 rounded-xl shadow-md text-center hover:shadow-lg transform hover:-translate-y-1 transition">
+          <h3 className="text-green-500 text-xl mb-4">Subscription Plans</h3>
+          <p>Flexible plans to suit everyone—from newcomers to established sellers—maximize your reach.</p>
+        </div>
+      </section>
+
+      {/* 🌍 Why IM-Expo Section */}
+      <section className="bg-white py-20 px-6 border-t border-gray-200">
+        <div className="w-full px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+            Why IM-Expo is Different
+          </h2>
+          <p className="text-gray-600 max-w-3xl mx-auto mb-12">
+            We’re not just another trade platform. IM-Expo was built to remove middlemen, empower small producers,
+            and create direct, verified connections that actually build trust — not just traffic.
+          </p>
+          {/* USP Grid */}
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="p-8 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition">
+              <h3 className="text-green-600 text-xl font-semibold mb-4">Verified Network</h3>
+              <p>Every buyer and seller is verified. You trade with real, trusted partners — no fakes or ghost accounts.</p>
+            </div>
+            <div className="p-8 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition">
+              <h3 className="text-green-600 text-xl font-semibold mb-4">Direct Connections</h3>
+              <p>No commissions, no agents. IM-Expo lets you communicate and trade directly, keeping profits in your hands.</p>
+            </div>
+            <div className="p-8 bg-gray-50 rounded-2xl shadow-sm hover:shadow-md transition">
+              <h3 className="text-green-600 text-xl font-semibold mb-4">Smart Matchmaking</h3>
+              <p>Our system connects local producers to importers actively seeking their type of products — intelligently and fairly.</p>
+            </div>
+          </div>
+
+          {/* Discover How It Works Button */}
+          <HashLink
+            smooth
+            to="/resources#how-it-works"
+            scroll={el => {
+              const yOffset = -80;
+              const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+              window.scrollTo({ top: y, behavior: 'smooth' });
+            }}
+            className="mt-8 inline-block bg-green-500 text-white px-8 py-3 rounded-full font-medium hover:bg-green-600 transition"
+          >
+            Discover How It Works
+          </HashLink>
+        </div>
+      </section>
+
+      {/* Resources Section */}
+      <section className="px-4 py-16 max-w-6xl mx-auto text-center">
+        <h2 className="text-3xl text-gray-900 mb-8">Resources & Guides</h2>
+        <p className="text-gray-600 mb-6">Export/import guides, seller tips, and buyer insights.</p>
+
+        <HashLink
+          smooth
+          to="/resources#resource-grid"
+          scroll={el => {
+            const yOffset = -80;
+            const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+          }}
+          className="inline-block bg-green-500 text-white px-8 py-3 rounded-full hover:bg-green-600 transition"
+        >
+          Explore Resources
+        </HashLink>
+      </section>
+
+      <Footer />
+    </div>
+  );
+};
+
+
 
 // Wrapper to automatically pass buyerUID
 const ExploreProductsWrapper = () => {
