@@ -21,6 +21,10 @@ import InitSubscriptions from "./pages/InitSubscriptions";
 import Payment from "./components/Payment";
 import Discover from "./pages/Discover";
 import SellerTransactions from "./components/SellerTransactions";
+import PermitVerification from "./components/PermitVerification";
+
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+
 
 
 // import the new page
@@ -116,6 +120,8 @@ const App = () => {
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/subscriptions/pay" element={<SubscriptionsPay />} />
         <Route path="/admin-login" element={<AdminLogin />} />
+
+
         <Route path="/init-subscriptions" element={<InitSubscriptions />} />
 
 
@@ -124,15 +130,20 @@ const App = () => {
         <Route
           path="/admin"
           element={
-            localStorage.getItem("isAdmin") === "true" ? (
-              <AdminDashboard />
-            ) : (
-              <Navigate to="/admin-login" />
-            )
+            <ProtectedAdminRoute>
+              <div className="w-screen h-screen m-0 p-0 bg-gray-50 overflow-x-hidden">
+                <AdminDashboard />
+              </div>
+            </ProtectedAdminRoute>
           }
         />
 
+
         <Route path="/discover" element={<Discover />} />
+        <Route path="/permit-verification" element={<PermitVerification />} />
+
+
+
 
       </Routes>
     </Router>

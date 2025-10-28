@@ -76,15 +76,29 @@ const Subscriptions = () => {
       <div className={styles.sellerGrid}>
         {subscriptions.map((plan) => (
           <div key={plan.type} className={styles.planCard}>
-            <h3 className={styles.planTitle}>{plan.type}</h3>
+            <div className={styles.planHeader}>
+              <h3 className={styles.planTitle}>{plan.type}</h3>
+              {plan.type === "Pro" ? (
+                <>
+                  <p className={styles.planPrice}>
+                    ${25 + (proCredits - 10) * 3} / month
+                  </p>
+                  <p className={styles.planCredits}>{proCredits} Credit(s) / month</p>
+                </>
+              ) : (
+                <>
+                  <p className={styles.planPrice}>
+                    {plan.price === "Free" ? "$0 / month" : plan.price}
+                  </p>
+                  <p className={styles.planCredits}>
+                    {plan.credits} Credit(s) / month
+                  </p>
+                </>
+              )}
+            </div>
 
-            {/* Dynamic pricing for Pro plan */}
-            {plan.type === "Pro" ? (
+            {plan.type === "Pro" && (
               <div className={styles.proSliderContainer}>
-                <p className={styles.planPrice}>
-                  ${25 + (proCredits - 10) * 3} / month
-                </p>
-                <p className={styles.planCredits}>{proCredits} Credit(s)</p>
                 <div className={styles.sliderWrapper}>
                   <input
                     type="range"
@@ -103,12 +117,8 @@ const Subscriptions = () => {
                   </div>
                 </div>
               </div>
-            ) : (
-              <>
-                <p className={styles.planPrice}>{plan.price}</p>
-                <p className={styles.planCredits}>{plan.credits} Credit(s)</p>
-              </>
             )}
+
 
             <ul className={styles.planFeatures}>
               {plan.features.map((feature, idx) => (
@@ -129,16 +139,33 @@ const Subscriptions = () => {
       {/* Buyer Plan */}
       <div className={styles.buyerPlan}>
         <h3 className={styles.planTitle}>{buyerPlan.type}</h3>
+        <div style={{ marginBottom: "0.75rem" }}></div>
+
         <p className={styles.planPrice}>{buyerPlan.price}</p>
         <ul className={styles.planFeatures}>
           {buyerPlan.features.map((feature, idx) => (
             <li key={idx}>{feature}</li>
           ))}
         </ul>
-        <button className={styles.planButton} onClick={() => navigate("/subscriptions/buyer")}>
-          Subscribe
-        </button>
+
+        {/* Two options: Paid or Free verification */}
+        <div className={styles.buyerButtons}>
+          <button
+            className={styles.planButton}
+            onClick={() => navigate("/subscriptions/pay?plan=VerifiedBuyer&type=paid")}
+          >
+            Subscribe & Get Verified
+          </button>
+
+          <button
+            className={`${styles.planButton} ${styles.outlineButton}`}
+            onClick={() => navigate("/permit-verification")}
+          >
+            Claim Free Verification
+          </button>
+        </div>
       </div>
+
     </div>
   );
 };

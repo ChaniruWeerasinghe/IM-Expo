@@ -16,6 +16,8 @@ const AdminLogin = () => {
 
     if (email === adminEmail && password === adminPassword) {
       localStorage.setItem("isAdmin", "true"); // store session flag
+      localStorage.setItem("adminEmail", email);
+
       navigate("/admin");
     } else {
       setError("Invalid admin credentials");

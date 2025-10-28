@@ -3,12 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { ref, get, set } from "firebase/database";
 
+// Child components
+import VerificationTable from "./VerificationTable";
+import VerificationStats from "./VerificationStats";
+
+// Import module styles
+import styles from "./AdminDashboard.module.css";
+
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("subscriptions");
   const [plans, setPlans] = useState([]);
   const navigate = useNavigate();
 
-  // ✅ Fetch subscription plans from Firebase
+  // ✅ Fetch subscription plans
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -21,7 +28,6 @@ const AdminDashboard = () => {
           }));
           setPlans(planList);
         } else {
-          // Default seed data
           const defaultPlans = [
             { id: "1", type: "Free", credits: 1, price: "Free" },
             { id: "2", type: "Starter", credits: 5, price: "$10 / month" },
@@ -41,14 +47,14 @@ const AdminDashboard = () => {
     fetchPlans();
   }, []);
 
-  // ✅ Edit local plan data
+  // ✅ Edit plan data
   const handleEdit = (index, field, value) => {
     const updatedPlans = [...plans];
     updatedPlans[index][field] = value;
     setPlans(updatedPlans);
   };
 
-  // ✅ Save plan changes back to Firebase
+  // ✅ Save plan changes
   const handleSave = async () => {
     try {
       const updates = {};
@@ -59,7 +65,10 @@ const AdminDashboard = () => {
           price: plan.price,
         };
       });
-      await set(ref(db, "plans"), plans.reduce((acc, p) => ({ ...acc, [p.id]: p }), {}));
+      await set(
+        ref(db, "plans"),
+        plans.reduce((acc, p) => ({ ...acc, [p.id]: p }), {})
+      );
       alert("✅ Plans updated successfully!");
     } catch (error) {
       console.error("Error updating plans:", error);
@@ -69,30 +78,29 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("isAdmin");
+    localStorage.removeItem("adminEmail");
     navigate("/admin-login");
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className={styles.dashboardContainer}>
       {/* Sidebar */}
-      <aside className="w-64 bg-green-600 text-white flex flex-col justify-between">
+      <aside className={styles.sidebar}>
         <div>
-          <div className="p-4 text-center font-bold text-2xl border-b border-green-500">
-            Admin Panel
-          </div>
-          <nav className="flex flex-col mt-4">
+          <div className={styles.sidebarHeader}>Admin Panel</div>
+          <nav className="flex flex-col mt-2">
             <button
               onClick={() => setActiveTab("subscriptions")}
-              className={`px-6 py-3 text-left hover:bg-green-700 ${
-                activeTab === "subscriptions" ? "bg-green-700" : ""
+              className={`${styles.navButton} ${
+                activeTab === "subscriptions" ? styles.navActive : ""
               }`}
             >
               Manage Subscriptions
             </button>
             <button
               onClick={() => setActiveTab("verifications")}
-              className={`px-6 py-3 text-left hover:bg-green-700 ${
-                activeTab === "verifications" ? "bg-green-700" : ""
+              className={`${styles.navButton} ${
+                activeTab === "verifications" ? styles.navActive : ""
               }`}
             >
               User Verifications
@@ -100,63 +108,61 @@ const AdminDashboard = () => {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-green-500">
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white w-full py-2 rounded"
-          >
+       <div className="p-3 border-t border-gray-300">
+          <button onClick={handleLogout} className={styles.logoutBtn}>
             Logout
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8">
+      <main className={styles.mainContent}>
         {activeTab === "subscriptions" && (
           <>
-            <h2 className="text-2xl font-bold mb-6">Manage Subscription Plans</h2>
+            <h2 className={styles.pageTitle}>Manage Subscription Plans</h2>
             {plans.length === 0 ? (
               <p>Loading plans...</p>
             ) : (
-              <table className="min-w-full border rounded-lg bg-white">
-                <thead>
-                  <tr className="bg-gray-100 text-left">
-                    <th className="border px-4 py-2">Plan</th>
-                    <th className="border px-4 py-2">Credits</th>
-                    <th className="border px-4 py-2">Price</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {plans.map((plan, i) => (
-                    <tr key={plan.id}>
-                      <td className="border px-4 py-2 font-medium text-gray-800">
-                        {plan.type}
-                      </td>
-                      <td className="border px-4 py-2">
-                        <input
-                          type="number"
-                          value={plan.credits}
-                          onChange={(e) => handleEdit(i, "credits", e.target.value)}
-                          className="border rounded px-2 py-1 w-20"
-                        />
-                      </td>
-                      <td className="border px-4 py-2">
-                        <input
-                          type="text"
-                          value={plan.price}
-                          onChange={(e) => handleEdit(i, "price", e.target.value)}
-                          className="border rounded px-2 py-1"
-                        />
-                      </td>
+              <div className={styles.tableContainer}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Plan</th>
+                      <th>Credits</th>
+                      <th>Price</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {plans.map((plan, i) => (
+                      <tr key={plan.id}>
+                        <td className="font-medium text-gray-800">{plan.type}</td>
+                        <td>
+                          <input
+                            type="number"
+                            value={plan.credits}
+                            onChange={(e) =>
+                              handleEdit(i, "credits", e.target.value)
+                            }
+                            className="border rounded px-2 py-1 w-20"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            value={plan.price}
+                            onChange={(e) =>
+                              handleEdit(i, "price", e.target.value)
+                            }
+                            className="border rounded px-2 py-1"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-            <button
-              onClick={handleSave}
-              className="mt-6 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded"
-            >
+            <button onClick={handleSave} className={styles.saveBtn}>
               Save Changes
             </button>
           </>
@@ -164,11 +170,11 @@ const AdminDashboard = () => {
 
         {activeTab === "verifications" && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">Pending Verifications</h2>
-            <p className="text-gray-700">
-              This is where admins can review uploaded documents from sellers and buyers.
-              (We’ll connect this to Firebase later.)
-            </p>
+            <h2 className={styles.pageTitle}>Verification Management</h2>
+            <VerificationStats />
+            <div className="mt-6">
+              <VerificationTable />
+            </div>
           </div>
         )}
       </main>

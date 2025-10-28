@@ -8,3 +8,9 @@ export const planMonthlyCredits = (plan, maxCredits) => {
   }
   return 1;
 };
+
+
+// Identify buyer verification type
+export const verificationType = (hasPermit) => {
+  return hasPermit ? "free" : "paid";
+};

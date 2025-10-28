@@ -13,6 +13,8 @@ const Header = ({ currentUser }) => {
   const navigate = useNavigate();
 
   const [role, setRole] = useState(null);
+  const [clickCount, setClickCount] = useState(0);
+
 
   React.useEffect(() => {
     const checkRole = async () => {
@@ -46,12 +48,27 @@ const Header = ({ currentUser }) => {
       <div className="w-full px-6 lg:px-12">
         <div className="flex justify-between h-16 items-center">
 
-          {/* Logo */}
+          {/* Logo with hidden admin trigger */}
           <div className="flex-shrink-0">
-            <Link to="/" className="text-green-600 font-bold text-xl">
+            <button
+              onClick={() => {
+                setClickCount((prev) => {
+                  const newCount = prev + 1;
+                  if (newCount >= 5) {
+                    navigate("/admin-login");
+                    return 0;
+                  }
+                  clearTimeout(window.logoTapTimer);
+                  window.logoTapTimer = setTimeout(() => setClickCount(0), 1000);
+                  return newCount;
+                });
+              }}
+              className="text-green-600 font-bold text-xl focus:outline-none select-none"
+            >
               IM-Expo
-            </Link>
+            </button>
           </div>
+
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-6 items-center">

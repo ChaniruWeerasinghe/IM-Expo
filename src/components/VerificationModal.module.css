@@ -1,0 +1,116 @@
+/* =========================================
+   Verification Modal Styles
+   File: /src/components/VerificationModal.module.css
+   ========================================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 540px;
+  padding: 2rem 2.5rem;
+  position: relative;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.closeBtn:hover {
+  color: #111827;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f766e;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.content {
+  font-size: 0.95rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.field {
+  margin-bottom: 0.5rem;
+}
+.field strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+}
+
+.btn {
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.approve {
+  background: linear-gradient(90deg, #0f766e, #10b981);
+  color: white;
+}
+.approve:hover {
+  background: linear-gradient(90deg, #0d9488, #059669);
+  transform: scale(1.03);
+}
+
+.reject {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  color: white;
+}
+.reject:hover {
+  background: linear-gradient(90deg, #b91c1c, #991b1b);
+  transform: scale(1.03);
+}

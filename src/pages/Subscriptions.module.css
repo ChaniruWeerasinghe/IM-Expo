@@ -2,11 +2,15 @@
 
 .container {
     min-height: 100vh;
-    background-color: #f3f4f6;
-    /* Slightly lighter gray for premium feel */
+
+    /* changed from #f3f4f6 to pure white */
     padding: 4rem 1.5rem;
     font-family: 'Inter', sans-serif;
+    max-width: 1280px;
+    margin: 0 auto;
+    /* center content */
 }
+
 
 .heading {
     text-align: center;
@@ -20,6 +24,16 @@
     font-weight: 900;
     color: #111827;
 }
+
+.planHeader {
+    min-height: 120px;
+    /* uniform section height for title + price + credits */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+}
+
 
 .description {
     margin-top: 1rem;
@@ -235,48 +249,95 @@
 
 /* Tick marks below slider for only 10, 15, 20 */
 .ticks {
-  display: flex;
-  justify-content: space-between; /* 10 at start, 15 center, 20 end */
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #6b7280;
+    display: flex;
+    justify-content: space-between;
+    /* 10 at start, 15 center, 20 end */
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #6b7280;
 }
 
 .tick {
-  position: relative;
-  text-align: center;
+    position: relative;
+    text-align: center;
 }
 
 .tick::before {
-  content: "";
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 6px;
-  background-color: #9ca3af; /* gray tick line */
-  border-radius: 1px;
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 6px;
+    background-color: #9ca3af;
+    /* gray tick line */
+    border-radius: 1px;
 }
 
 .tick span {
-  display: block;
-  margin-top: 8px;
+    display: block;
+    margin-top: 8px;
 }
 
+
+.buyerButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.outlineButton {
+  background-color: transparent;
+  color: #2563eb;
+  border: 2px solid #2563eb;
+}
+
+.outlineButton:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
 
 
 .closeButton {
-  position: absolute;
-  top: 1.5rem;
-  right: 3.8rem;
-  font-size: 3rem;
-  font-weight: bold;
-  color: #374151; /* gray-700 */
-  cursor: pointer;
-  transition: color 0.2s ease;
+    position: absolute;
+    top: 1.5rem;
+    right: 3.8rem;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #374151;
+    /* gray-700 */
+    cursor: pointer;
+    transition: color 0.2s ease;
 }
 
 .closeButton:hover {
-  color: #111827; /* gray-900 */
+    color: #111827;
+    /* gray-900 */
+}
+
+
+@media (max-width: 640px) {
+    .title {
+        font-size: 1.75rem;
+    }
+
+    .description {
+        font-size: 1rem;
+    }
+
+    .planCard {
+        padding: 1.5rem;
+    }
+
+    .buyerPlan {
+        padding: 2rem 1.5rem;
+    }
+
+    .closeButton {
+        right: 1.5rem;
+        top: 1rem;
+        font-size: 2.25rem;
+    }
 }

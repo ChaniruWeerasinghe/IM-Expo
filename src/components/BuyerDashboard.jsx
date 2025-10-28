@@ -23,6 +23,8 @@ const BuyerDashboard = () => {
   const navigate = useNavigate();
 
   const [buyerInfo, setBuyerInfo] = useState({ name: "Buyer Name", email: "", company: "" });
+  const [verification, setVerification] = useState({ status: "Not Verified", type: null });
+
   const [transactions, setTransactions] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [stats, setStats] = useState({ totalSpent: 0, totalOrders: 0, pending: 0 });
@@ -47,6 +49,13 @@ const BuyerDashboard = () => {
     const buyerRef = ref(db, `users/buyers/${uid}`);
     const transRef = ref(db, "transactions");
     const cartRef = ref(db, `carts/${uid}`);
+
+    const verifyRef = ref(db, `users/buyers/${uid}/verification`);
+    onValue(verifyRef, (snap) => {
+      const data = snap.val();
+      if (data) setVerification(data);
+    });
+
 
     // ✅ Fetch Buyer Info
     onValue(buyerRef, (snapshot) => {
@@ -290,6 +299,26 @@ const BuyerDashboard = () => {
             {buyerInfo.company && <p className="text-gray-500 italic font-medium">{buyerInfo.company}</p>}
             <p className="text-gray-600 font-normal">{buyerInfo.email}</p>
           </div>
+          {/* Verification Badge */}
+          <div className="flex items-center gap-2 mt-2">
+            {verification.status === "Verified" ? (
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${verification.type === "free"
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-green-100 text-green-700"
+                  }`}
+              >
+                {verification.type === "free"
+                  ? "Authorized Buyer (Free Verified)"
+                  : "IM-Expo Verified Buyer"}
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700">
+                Not Verified
+              </span>
+            )}
+          </div>
+
         </div>
 
         {/* Explore */}
