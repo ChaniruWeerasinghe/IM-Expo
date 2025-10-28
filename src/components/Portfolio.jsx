@@ -4,12 +4,37 @@ import { db } from "../firebase";
 import { ref, onValue, push } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { update } from "firebase/database"; // ✅ make sure this import is added with others
+import ProductReview from "./ProductReview";
+
+
+
 const Portfolio = () => {
   const [products, setProducts] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // 🔹 Increment product view count
+  const incrementViews = async (productId) => {
+    try {
+      const productRef = ref(db, `products/${productId}`);
+      onValue(
+        productRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            update(productRef, { views: (data.views || 0) + 1 });
+          }
+        },
+        { onlyOnce: true }
+      );
+    } catch (err) {
+      console.error("Error updating views:", err);
+    }
+  };
+
 
   // Fetch products from Firebase
   useEffect(() => {
@@ -21,6 +46,9 @@ const Portfolio = () => {
         setProducts(list);
         setFiltered(list);
       }
+
+
+
     });
 
     return () => unsubscribe();
@@ -126,7 +154,11 @@ const Portfolio = () => {
               transition={{ delay: i * 0.05 }}
             >
               <div
-                onClick={() => setSelectedProduct(p)}
+                onClick={() => {
+                  incrementViews(p.id);
+                  setSelectedProduct(p);
+                }}
+
                 className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-2xl transition-transform transform hover:-translate-y-1 overflow-hidden flex flex-col h-full"
               >
                 <img
@@ -185,6 +217,9 @@ const Portfolio = () => {
               <p className="text-gray-700 mb-4">
                 {selectedProduct.description || "No description provided."}
               </p>
+              {/* Product Rating Section */}
+              <ProductReview productId={selectedProduct.id} />
+
               <div className="flex gap-4">
                 <button
                   className="flex-1 bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition"

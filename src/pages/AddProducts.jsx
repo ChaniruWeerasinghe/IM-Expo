@@ -5,7 +5,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { useNavigate } from "react-router-dom";
 
 const AddProducts = () => {
-  const [user] = useAuthState(auth); 
+  const [user] = useAuthState(auth);
   const [product, setProduct] = useState({
     name: "",
     category: "Beverages",
@@ -47,7 +47,7 @@ const AddProducts = () => {
         return;
       }
 
-      // 3️⃣ Upload product
+      // 3️⃣ Upload product (with initial tracking metrics)
       const productsRef = ref(db, "products");
       await push(productsRef, {
         ...product,
@@ -55,7 +55,12 @@ const AddProducts = () => {
         sellerUID: user.uid,
         sellerEmail: user.email,
         createdAt: new Date().toISOString(),
+        views: 0,          // initialize product view count
+        salesCount: 0,     // initialize total sales count
+        ratings: [],       // store individual ratings later
+        avgRating: 0,      // average rating (used for Discover sorting)
       });
+
 
       // 4️⃣ Update credits
       await update(ref(db, `subscriptions/sellers/${user.uid}`), {

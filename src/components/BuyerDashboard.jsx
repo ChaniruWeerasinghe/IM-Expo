@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { db, auth } from "../firebase";
-import { ref, onValue, off, push,set, update, remove } from "firebase/database";
+import { ref, onValue, off, push, set, update, remove } from "firebase/database";
 import { signOut } from "firebase/auth";
 import "./OrderButton.css";
 
@@ -66,11 +66,13 @@ const BuyerDashboard = () => {
       const buyerTx = Object.values(data).filter((t) => t.buyerUID === uid);
       setTransactions(buyerTx);
 
-      const totalSpent = buyerTx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      const approvedTx = buyerTx.filter(t => t.status === "Approved");
+      const totalApprovedValue = approvedTx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
       const totalOrders = buyerTx.length;
-      const pending = buyerTx.filter((t) => t.status === "Pending").length;
+      const pending = buyerTx.filter(t => t.status === "Pending").length;
 
-      setStats({ totalSpent, totalOrders, pending });
+      setStats({ totalApprovedValue, totalOrders, pending });
+
     });
 
     // ✅ Fetch Cart + Seller Info
@@ -126,80 +128,80 @@ const BuyerDashboard = () => {
   };
 
   // 🔹 Place Order
-const handlePlaceOrder = async () => {
-  if (cartItems.length === 0) {
-    alert("Your cart is empty!");
-    return;
-  }
-
-  const transRef = ref(db, "transactions");
-  const requestRef = ref(db, "orderRequests");
-
-  for (let item of cartItems) {
-    // 🔹 Fetch product info
-    const productSnap = await new Promise((resolve) => {
-      const productRef = ref(db, `products/${item.productId}`);
-      onValue(productRef, (snap) => resolve(snap.val()), { onlyOnce: true });
-    });
-
-    if (!productSnap) continue;
-
-    const sellerUID = productSnap.sellerUID;
-    let sellerName = "Unknown Seller";
-
-    if (sellerUID) {
-      const sellerSnap = await new Promise((resolve) => {
-        const sellerRef = ref(db, `users/sellers/${sellerUID}`);
-        onValue(sellerRef, (snap) => resolve(snap.val()), { onlyOnce: true });
-      });
-      if (sellerSnap) sellerName = sellerSnap.name || "Unknown Seller";
+  const handlePlaceOrder = async () => {
+    if (cartItems.length === 0) {
+      alert("Your cart is empty!");
+      return;
     }
 
-    const amount = (productSnap.price || 0) * (item.quantity || 1);
+    const transRef = ref(db, "transactions");
+    const requestRef = ref(db, "orderRequests");
 
-    // 🔹 Create a single transaction per cart item
-    const newTransRef = push(transRef);
-    const transactionId = newTransRef.key;
+    for (let item of cartItems) {
+      // 🔹 Fetch product info
+      const productSnap = await new Promise((resolve) => {
+        const productRef = ref(db, `products/${item.productId}`);
+        onValue(productRef, (snap) => resolve(snap.val()), { onlyOnce: true });
+      });
 
-    await set(newTransRef, {
-      productId: item.productId,
-      productName: productSnap.name || item.productName,
-      productCategory: productSnap.category || "Uncategorized",
-      price: productSnap.price || 0,
-      quantity: item.quantity || 1,
-      buyerUID: uid,
-      buyerName: buyerInfo.name || "N/A", // <-- add buyer name here
-      sellerUID: sellerUID || "",
-      sellerName,
-      sellerEmail: productSnap.sellerEmail || "",
-      amount,
-      status: "Pending",
-      date: new Date().toISOString(),
-      orderRequestId: transactionId, // link order request to this transaction
-    });
+      if (!productSnap) continue;
 
-    // 🔹 Create order request (linked to transaction)
-    const newReqRef = push(requestRef);
-    await set(newReqRef, {
-      buyerUID: uid,
-      buyerName: buyerInfo.name || "N/A", // <-- add buyer name here too
-      sellerUID: sellerUID || "",
-      productId: item.productId,
-      productName: productSnap.name || item.productName,
-      quantity: item.quantity || 1,
-      amount,
-      status: "Pending",
-      date: new Date().toISOString(),
-      transactionId, // store the linked transaction
-    });
+      const sellerUID = productSnap.sellerUID;
+      let sellerName = "Unknown Seller";
 
-    // 🔹 Remove cart item
-    const itemRef = ref(db, `carts/${uid}/${item.id}`);
-    await remove(itemRef);
-  }
+      if (sellerUID) {
+        const sellerSnap = await new Promise((resolve) => {
+          const sellerRef = ref(db, `users/sellers/${sellerUID}`);
+          onValue(sellerRef, (snap) => resolve(snap.val()), { onlyOnce: true });
+        });
+        if (sellerSnap) sellerName = sellerSnap.name || "Unknown Seller";
+      }
 
-  
-};
+      const amount = (productSnap.price || 0) * (item.quantity || 1);
+
+      // 🔹 Create a single transaction per cart item
+      const newTransRef = push(transRef);
+      const transactionId = newTransRef.key;
+
+      await set(newTransRef, {
+        productId: item.productId,
+        productName: productSnap.name || item.productName,
+        productCategory: productSnap.category || "Uncategorized",
+        price: productSnap.price || 0,
+        quantity: item.quantity || 1,
+        buyerUID: uid,
+        buyerName: buyerInfo.name || "N/A", // <-- add buyer name here
+        sellerUID: sellerUID || "",
+        sellerName,
+        sellerEmail: productSnap.sellerEmail || "",
+        amount,
+        status: "Pending",
+        date: new Date().toISOString(),
+        orderRequestId: transactionId, // link order request to this transaction
+      });
+
+      // 🔹 Create order request (linked to transaction)
+      const newReqRef = push(requestRef);
+      await set(newReqRef, {
+        buyerUID: uid,
+        buyerName: buyerInfo.name || "N/A", // <-- add buyer name here too
+        sellerUID: sellerUID || "",
+        productId: item.productId,
+        productName: productSnap.name || item.productName,
+        quantity: item.quantity || 1,
+        amount,
+        status: "Pending",
+        date: new Date().toISOString(),
+        transactionId, // store the linked transaction
+      });
+
+      // 🔹 Remove cart item
+      const itemRef = ref(db, `carts/${uid}/${item.id}`);
+      await remove(itemRef);
+    }
+
+
+  };
 
 
   // 🔹 Charts data
@@ -217,68 +219,67 @@ const handlePlaceOrder = async () => {
   const COLORS = ["#4ade80", "#60a5fa", "#facc15", "#f87171", "#a78bfa", "#34d399", "#f472b6"];
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
+    <div className="flex bg-gray-50 min-h-screen w-full overflow-hidden">
+
+
+
+
       {/* Sidebar */}
-      <div
-        className={`bg-white shadow-md h-screen fixed right-0 top-0 flex flex-col justify-start transition-all duration-300 ${
-          collapsed ? "w-16" : "w-64"
-        }`}
-      >
-        <div className="flex flex-col items-center mt-2">
-          <button
-            className="p-3 text-gray-700 hover:text-green-500 focus:outline-none"
-            onClick={() => navigate("/")}
-            title="Home"
-          >
-            🏠
-          </button>
-          <button
-            className="mt-2 p-3 text-gray-700 hover:text-green-500 focus:outline-none"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? "☰" : "✕"}
-          </button>
+      <div className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-gray-200 flex flex-col justify-between shadow-md">
+        <div>
+          {/* Header / Logo */}
+          <div className="flex items-center justify-center py-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-green-600">IM-Expo</h2>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex flex-col mt-6 space-y-1">
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+            >
+              <i className="fas fa-home text-green-500"></i>
+              <span>Main Dashboard</span>
+            </Link>
+
+
+
+
+            <Link
+              to="/transactions"
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+            >
+              <i className="fas fa-receipt text-green-500"></i>
+              <span>Transactions</span>
+            </Link>
+
+            <Link
+              to="/portfolio"
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+            >
+              <i className="fas fa-briefcase text-green-500"></i>
+              <span>Portfolio</span>
+            </Link>
+          </nav>
         </div>
 
-        <nav className="flex flex-col mt-6 space-y-2 items-center flex-1">
-          {[
-            { icon: "📊", name: "Dashboard", link: `/seller/${uid}` },
-            { icon: "💰", name: "Transactions", link: "/transactions" },
-            { icon: "🗂", name: "Portfolio", link: "/portfolio" },
-          ].map((item) => (
-            <Link
-              key={item.name}
-              to={item.link}
-              className="group relative flex items-center w-full px-4 py-3 text-gray-700 hover:bg-green-100 rounded transition"
-            >
-              <span className="text-xl">{item.icon}</span>
-              {!collapsed && <span className="ml-3 font-medium">{item.name}</span>}
-              {collapsed && (
-                <span className="absolute left-[-120px] w-max bg-white text-gray-800 font-medium shadow-lg rounded px-3 py-1 opacity-0 group-hover:opacity-100 transition">
-                  {item.name}
-                </span>
-              )}
-            </Link>
-          ))}
-
-          {/* Logout */}
+        {/* Logout */}
+        <div className="border-t border-gray-200 py-4">
           <button
             onClick={handleLogout}
-            className="group relative flex items-center w-full px-4 py-3 text-gray-700 hover:bg-red-100 rounded transition mt-auto"
+            className="flex items-center gap-3 px-6 py-3 w-full text-red-500 hover:bg-red-50 transition"
           >
-            <span className="text-xl">🚪</span>
-            {!collapsed && <span className="ml-3 font-medium text-red-600">Logout</span>}
-            {collapsed && (
-              <span className="absolute left-[-120px] w-max bg-white text-gray-800 font-medium shadow-lg rounded px-3 py-1 opacity-0 group-hover:opacity-100 transition">
-                Logout
-              </span>
-            )}
+            <i className="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
           </button>
-        </nav>
+        </div>
       </div>
 
+
+
       {/* Main */}
-      <div className="flex-1 p-6 md:p-10 mr-0 md:mr-64">
+      <div className="flex-1 p-6 md:p-10 ml-64">
+
         {/* Buyer Info */}
         <div className="bg-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
           <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-2xl font-bold text-white shadow-md">
@@ -304,8 +305,11 @@ const handlePlaceOrder = async () => {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="text-gray-600 font-semibold">Total Spent</h3>
-            <p className="text-3xl font-bold text-green-600">${stats.totalSpent.toFixed(2)}</p>
+            <h3 className="text-gray-600 font-semibold">Total Revenue</h3>
+            <p className="text-3xl font-bold text-green-600">
+              ${stats.totalApprovedValue?.toFixed(2) || "0.00"}
+            </p>
+
           </div>
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="text-gray-600 font-semibold">Total Orders</h3>
@@ -367,7 +371,7 @@ const handlePlaceOrder = async () => {
                     {cartItems.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="p-3 border-b">{item.productName || item.productId}</td>
-                        <td className="p-3 border-b">${item.price || "0.00"}</td>
+                        <td className="p-3 border-b">${Number(item.price || 0).toFixed(2)}</td>
                         <td className="p-3 border-b">
                           <input
                             type="number"
@@ -442,8 +446,40 @@ const handlePlaceOrder = async () => {
 
         {/* Transactions */}
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-4">Your Orders</h2>
-          {transactions.length > 0 ? (
+          <h2 className="text-2xl font-semibold mb-4">Pending Orders</h2>
+          {transactions.filter(t => t.status === "Pending").length > 0 ? (
+            <table className="min-w-full bg-white rounded-xl overflow-hidden mb-10">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="p-3 border-b">Product</th>
+                  <th className="p-3 border-b">Amount</th>
+                  <th className="p-3 border-b">Status</th>
+                  <th className="p-3 border-b">Date</th>
+                  <th className="p-3 border-b">Seller Name</th>
+                  <th className="p-3 border-b">Seller Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions
+                  .filter(t => t.status === "Pending")
+                  .map((t, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="p-3 border-b">{t.productName}</td>
+                      <td className="p-3 border-b">${Number(t.amount).toFixed(2)}</td>
+                      <td className="p-3 border-b text-orange-500 font-semibold">{t.status}</td>
+                      <td className="p-3 border-b">{t.date}</td>
+                      <td className="p-3 border-b">{t.sellerName || "N/A"}</td>
+                      <td className="p-3 border-b">{t.sellerEmail || ""}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-500 mb-8">No pending orders.</p>
+          )}
+
+          <h2 className="text-2xl font-semibold mb-4">Approved Orders</h2>
+          {transactions.filter(t => t.status === "Approved").length > 0 ? (
             <table className="min-w-full bg-white rounded-xl overflow-hidden">
               <thead>
                 <tr className="bg-gray-100 text-left">
@@ -456,22 +492,29 @@ const handlePlaceOrder = async () => {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((t, i) => (
-                  <tr key={i} className="hover:bg-gray-50">
-                    <td className="p-3 border-b">{t.productName}</td>
-                    <td className="p-3 border-b">${t.amount}</td>
-                    <td className="p-3 border-b">{t.status}</td>
-                    <td className="p-3 border-b">{t.date}</td>
-                    <td className="p-3 border-b">{t.sellerName || "N/A"}</td>
-                    <td className="p-3 border-b">{t.sellerEmail || ""}</td>
-                  </tr>
-                ))}
+                {transactions
+                  .filter(t => t.status === "Approved")
+                  .map((t, i) => (
+                    <tr key={i} className="hover:bg-gray-50">
+                      <td className="p-3 border-b">{t.productName}</td>
+                      <td className="p-3 border-b">${Number(t.amount).toFixed(2)}</td>
+                      <td className="p-3 border-b text-green-600 font-semibold">{t.status}</td>
+                      <td className="p-3 border-b">{t.date}</td>
+                      <td className="p-3 border-b">{t.sellerName || "N/A"}</td>
+                      <td className="p-3 border-b">{t.sellerEmail || ""}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           ) : (
-            <p className="text-gray-500">No orders yet.</p>
+            <p className="text-gray-500">No approved orders yet.</p>
           )}
         </div>
+
+
+
+
+
       </div>
     </div>
   );

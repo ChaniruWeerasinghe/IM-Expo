@@ -4,11 +4,29 @@ import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 
+import { ref, get } from "firebase/database";
+import { db } from "../firebase";
+
+
 const Header = ({ currentUser }) => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  
+  const [role, setRole] = useState(null);
+
+  React.useEffect(() => {
+    const checkRole = async () => {
+      if (!currentUser) return;
+      const buyerSnap = await get(ref(db, `users/buyers/${currentUser.uid}`));
+      const sellerSnap = await get(ref(db, `users/sellers/${currentUser.uid}`));
+      if (buyerSnap.exists()) setRole("buyer");
+      else if (sellerSnap.exists()) setRole("seller");
+    };
+    checkRole();
+  }, [currentUser]);
+
+
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate("/"); // Redirect to home after logout
@@ -84,18 +102,24 @@ const Header = ({ currentUser }) => {
               </>
             ) : (
               <>
-                <button
-                  onClick={() => navigate(`/seller/${currentUser.uid}`)}
-                  className="text-gray-700 hover:text-green-500 transition"
-                >
-                  Seller
-                </button>
-                <button
-                  onClick={() => navigate(`/buyer/${currentUser.uid}`)}
-                  className="text-gray-700 hover:text-green-500 transition"
-                >
-                  Buyer
-                </button>
+                {role === "seller" && (
+                  <button
+                    onClick={() => navigate(`/seller/${currentUser.uid}`)}
+                    className="text-gray-700 hover:text-green-500 transition"
+                  >
+                    Seller
+                  </button>
+                )}
+
+                {role === "buyer" && (
+                  <button
+                    onClick={() => navigate(`/buyer/${currentUser.uid}`)}
+                    className="text-gray-700 hover:text-green-500 transition"
+                  >
+                    Buyer
+                  </button>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="text-gray-700 hover:text-red-500 transition"
@@ -103,6 +127,7 @@ const Header = ({ currentUser }) => {
                   Logout
                 </button>
               </>
+
             )}
           </div>
 
@@ -199,25 +224,29 @@ const Header = ({ currentUser }) => {
               </>
             ) : (
               <>
-                <button
-                  onClick={() => {
-                    navigate(`/seller/${currentUser.uid}`);
-                    setIsOpen(false);
-                  }}
-                  className="text-gray-700 hover:text-green-500 block text-left w-full"
-                >
-                  Seller
-                </button>
+                {role === "seller" && (
+                  <button
+                    onClick={() => {
+                      navigate(`/seller/${currentUser.uid}`);
+                      setIsOpen(false);
+                    }}
+                    className="text-gray-700 hover:text-green-500 block text-left w-full"
+                  >
+                    Seller
+                  </button>
+                )}
 
-                <button
-                  onClick={() => {
-                    navigate(`/buyer/${currentUser.uid}`);
-                    setIsOpen(false);
-                  }}
-                  className="text-gray-700 hover:text-green-500 block text-left w-full"
-                >
-                  Buyer
-                </button>
+                {role === "buyer" && (
+                  <button
+                    onClick={() => {
+                      navigate(`/buyer/${currentUser.uid}`);
+                      setIsOpen(false);
+                    }}
+                    className="text-gray-700 hover:text-green-500 block text-left w-full"
+                  >
+                    Buyer
+                  </button>
+                )}
 
                 <button
                   onClick={() => {

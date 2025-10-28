@@ -10,3 +10,12 @@
 .font-roboto {
   font-family: 'Roboto', sans-serif;
 }
+
+/* Ensure full width and remove right-side gap */
+html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: #f9fafb; /* matches Tailwind gray-50 */
+}

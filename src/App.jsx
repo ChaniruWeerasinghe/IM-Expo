@@ -20,6 +20,11 @@ import AdminLogin from "./components/AdminLogin";
 import InitSubscriptions from "./pages/InitSubscriptions";
 import Payment from "./components/Payment";
 import Discover from "./pages/Discover";
+import SellerTransactions from "./components/SellerTransactions";
+
+
+// import the new page
+import SubscriptionsPay from "./components/SubscriptionsPay";
 
 // Login & Signup
 import Login from "./components/Login";
@@ -70,6 +75,20 @@ const App = () => {
           }
         />
 
+        {/* Seller Transactions Page */}
+        <Route
+          path="/seller-transactions"
+          element={
+            <ProtectedRoute role="seller">
+              <SellerTransactions />
+            </ProtectedRoute>
+          }
+        />
+
+
+
+
+
         {/* Seller Add Products */}
         <Route
           path="/seller/:uid/add-products"
@@ -81,14 +100,8 @@ const App = () => {
         />
 
         {/* Buyer Dashboard */}
-        <Route
-          path="/buyer/:uid"
-          element={
-            <ProtectedRoute role="buyer">
-              <BuyerDashboard />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/buyer/:uid" element={<BuyerDashboard />} />
+
 
         {/* Buyer Explore Products */}
         <Route
@@ -101,11 +114,10 @@ const App = () => {
         <Route path="/resources" element={<Resources />} />
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/subscriptions" element={<Subscriptions />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/subscriptions/pay" element={<SubscriptionsPay />} />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/init-subscriptions" element={<InitSubscriptions />} />
-        <Route path="/subscriptions" element={<Subscriptions />} />
-        <Route path="/subscriptions/pay" element={<Payment />} />
+
 
 
         {/* Protected Admin Route */}
@@ -121,9 +133,6 @@ const App = () => {
         />
 
         <Route path="/discover" element={<Discover />} />
-
-
-
 
       </Routes>
     </Router>

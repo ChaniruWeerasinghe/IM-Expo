@@ -5,14 +5,18 @@ import { db, auth } from "../firebase";
 import { signOut } from "firebase/auth";
 import {
   ref,
+  get,
+  push,
+  set,
+  update,
   onValue,
   off,
-  update,
   remove,
   query,
   orderByChild,
   equalTo,
 } from "firebase/database";
+
 import {
   LineChart,
   Line,
@@ -29,13 +33,83 @@ const SellerDashboard = () => {
   const { uid } = useParams();
   const navigate = useNavigate();
 
+  // How many credits each plan gets per month
+  const planMonthlyCredits = (plan, maxCredits) => {
+    if (plan === "Free") return 1;
+    if (plan === "Starter") return 5;
+    if (plan === "Pro") {
+      // Pro is adjustable 10–20; clamp just in case
+      const n = Number(maxCredits) || 10;
+      return Math.max(10, Math.min(n, 20));
+    }
+    return 1;
+  };
+
+  // Utility: whole days between two Date objects
+  const daysBetween = (a, b) => Math.floor((a.getTime() - b.getTime()) / (1000 * 60 * 60 * 24));
+
+  // If a paid plan hasn't been renewed within 30/37 days, update status.
+  // Uses lastPaymentAt if present; otherwise falls back to lastReset (temporary proxy).
+  const enforceSubscriptionStatus = async (uid, subRef, data) => {
+    const now = new Date();
+    // Free plan is always active in this model
+    if (!data || data.plan === "Free") return;
+
+    const anchorISO = data.lastPaymentAt || data.lastReset; // TODO: set lastPaymentAt in your Subscriptions flow
+    if (!anchorISO) return;
+
+    const anchor = new Date(anchorISO);
+    const d = daysBetween(now, anchor);
+
+    let newStatus = data.status || "active";
+    if (d >= 37) newStatus = "deactivated";
+    else if (d >= 30) newStatus = "suspended";
+    else newStatus = "active";
+
+    if (newStatus !== data.status) {
+      await update(subRef, { status: newStatus, statusCheckedAt: now.toISOString() });
+    }
+  };
+
+
+  const checkAndResetCredits = async (uid) => {
+    const subRef = ref(db, `subscriptions/sellers/${uid}`);
+    const snap = await get(subRef);
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+    const now = new Date();
+    const last = data.lastReset ? new Date(data.lastReset) : null;
+
+    const monthChanged =
+      !last ||
+      now.getFullYear() !== last.getFullYear() ||
+      now.getMonth() !== last.getMonth();
+
+    const normalizedMax = planMonthlyCredits(data.plan, data.maxCredits);
+
+    if (monthChanged) {
+      await update(subRef, {
+        credits: normalizedMax,          // reset to plan amount (no carry)
+        maxCredits: normalizedMax,       // keep max in sync with plan
+        lastReset: now.toISOString(),
+      });
+    } else if (data.maxCredits !== normalizedMax) {
+      // keep maxCredits synced even mid-cycle (no credit carry-up)
+      await update(subRef, { maxCredits: normalizedMax });
+    }
+  };
+
+
+
+
   const [products, setProducts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editData, setEditData] = useState({});
   const [sellerInfo, setSellerInfo] = useState({ name: "Seller Name", email: "" });
   const [stats, setStats] = useState({ totalProducts: 0, totalSales: 0, pendingOrders: 0 });
-  const [collapsed, setCollapsed] = useState(false);
+
   const [subscription, setSubscription] = useState(null);
   const [orderRequests, setOrderRequests] = useState([]);
 
@@ -50,9 +124,13 @@ const SellerDashboard = () => {
     }
   };
 
+
+
   // Main data fetch
   useEffect(() => {
     if (!uid) return;
+    checkAndResetCredits(uid);
+
 
     const sellerRef = ref(db, `users/sellers/${uid}`);
     const subRef = ref(db, `subscriptions/sellers/${uid}`);
@@ -72,19 +150,40 @@ const SellerDashboard = () => {
     });
 
     // Subscription
-    onValue(subRef, (snapshot) => {
+    onValue(subRef, async (snapshot) => {
       const data = snapshot.val();
+
       if (data) {
-        setSubscription(data);
+        // Clamp credits to the plan cap
+        const planCap = planMonthlyCredits(data.plan, data.maxCredits);
+        if (typeof data.credits === "number" && data.credits > planCap) {
+          await update(subRef, { credits: planCap });
+          // Use clamped data for status checks
+          await enforceSubscriptionStatus(uid, subRef, { ...data, credits: planCap });
+          setSubscription({ ...data, credits: planCap });
+        } else {
+          await enforceSubscriptionStatus(uid, subRef, data);
+          setSubscription(data);
+        }
       } else {
-        setSubscription({
+        // First-time seller: create Free plan
+        const init = {
           plan: "Free",
-          credits: 0,
-          maxFreeCredits: 5,
-          status: "inactive",
-        });
+          status: "active",
+          maxCredits: 1,
+          credits: 1,
+          lastReset: new Date().toISOString(),
+          // lastPaymentAt is not needed for Free; paid plans should set it on purchase/renewal
+        };
+        await set(subRef, init);
+        setSubscription(init);
       }
     });
+
+
+
+
+
 
     // Products
     onValue(productsQuery, (snapshot) => {
@@ -100,10 +199,22 @@ const SellerDashboard = () => {
       const sellerTx = Object.values(data);
       setTransactions(sellerTx);
 
-      const totalSales = sellerTx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      // ✅ Only count approved transactions, using quantity × price
+      const approvedTx = sellerTx.filter((t) => t.status === "Approved");
+
+      // Calculate total earnings based on approved items and quantity
+      const totalSales = approvedTx.reduce(
+        (sum, t) => sum + Number(t.price || 0) * Number(t.quantity || 1),
+        0
+      );
+
       const pendingOrders = sellerTx.filter((t) => t.status === "Pending").length;
+
       setStats((prev) => ({ ...prev, totalSales, pendingOrders }));
+
+
     });
+
 
     // Orders
     onValue(ordersQuery, (snapshot) => {
@@ -206,117 +317,156 @@ const SellerDashboard = () => {
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      {/* Sidebar */}
-      <div
-        className={`bg-white shadow-md h-screen fixed right-0 top-0 flex flex-col justify-start transition-all duration-300 ${
-          collapsed ? "w-16" : "w-64"
-        }`}
-      >
-        <div className="flex flex-col items-center mt-2">
-          <button
-            className="p-3 text-gray-700 hover:text-green-500"
-            onClick={() => navigate("/")}
-            title="Home"
-          >
-            🏠
-          </button>
-          <button
-            className="mt-2 p-3 text-gray-700 hover:text-green-500"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? "☰" : "✕"}
-          </button>
+
+
+      {/* Sidebar (Same as Buyer Dashboard) */}
+      <div className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-gray-200 flex flex-col justify-between shadow-md">
+        <div>
+          {/* Header / Logo */}
+          <div className="flex items-center justify-center py-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-green-600">IM-Expo</h2>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex flex-col mt-6 space-y-1">
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+            >
+              <i className="fas fa-home text-green-500"></i>
+              <span>Main Dashboard</span>
+            </Link>
+
+            <Link
+              to={`/seller/${uid}`}
+              className="flex items-center gap-3 px-6 py-3 bg-green-50 text-green-600 border-l-4 border-green-500 transition"
+            >
+              <i className="fas fa-chart-line text-green-500"></i>
+              <span>Seller Dashboard</span>
+            </Link>
+
+            <Link
+              to={`/seller/${uid}/add-products`}
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+            >
+              <i className="fas fa-plus-circle text-green-500"></i>
+              <span>Add Products</span>
+            </Link>
+
+            <button
+              onClick={() => navigate("/seller-transactions")}
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition w-full text-left"
+            >
+              <i className="fas fa-receipt text-green-500"></i>
+              <span>Transactions</span>
+            </button>
+
+
+
+
+            <Link
+              to="/portfolio"
+              className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
+            >
+              <i className="fas fa-briefcase text-green-500"></i>
+              <span>Portfolio</span>
+            </Link>
+          </nav>
         </div>
 
-        <nav className="flex flex-col mt-6 space-y-2 items-center flex-1">
-          {[
-            { icon: "📊", name: "Dashboard", link: `/seller/${uid}` },
-            { icon: "➕", name: "Add Products", link: `/seller/${uid}/add-products` },
-            { icon: "💰", name: "Transactions", link: "/transactions" },
-            { icon: "🗂", name: "Portfolio", link: "/portfolio" },
-          ].map((item) => (
-            <Link
-              key={item.name}
-              to={item.link}
-              className="group relative flex items-center w-full px-4 py-3 text-gray-700 hover:bg-green-100 rounded transition"
-            >
-              <span className="text-xl">{item.icon}</span>
-              {!collapsed && <span className="ml-3 font-medium">{item.name}</span>}
-            </Link>
-          ))}
-
-          {/* Logout */}
+        {/* Logout */}
+        <div className="border-t border-gray-200 py-4">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3 text-gray-700 hover:bg-red-100 rounded mt-auto"
+            className="flex items-center gap-3 px-6 py-3 w-full text-red-500 hover:bg-red-50 transition"
           >
-            <span className="text-xl">🚪</span>
-            {!collapsed && <span className="ml-3 font-medium text-red-600">Logout</span>}
+            <i className="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
           </button>
-        </nav>
+        </div>
       </div>
+
+
 
       {/* Main Content */}
-      <div className="flex-1 p-6 md:p-10 mr-0 md:mr-64">
+      <div className="flex-1 p-6 md:p-10 ml-64">
+
         {/* Seller Info + Subscription */}
-<div className="bg-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
-  <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-2xl font-bold text-white shadow-md">
-    {sellerInfo.name.charAt(0)}
-  </div>
+        <div className="bg-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-2xl font-bold text-white shadow-md">
+            {sellerInfo.name.charAt(0)}
+          </div>
 
-  <div className="flex flex-col gap-1 text-left">
-    <h2 className="text-2xl font-semibold text-gray-800">{sellerInfo.name}</h2>
+          <div className="flex flex-col gap-1 text-left">
+            <h2 className="text-2xl font-semibold text-gray-800">{sellerInfo.name}</h2>
 
-    {sellerInfo.company && (
-      <p className="text-gray-500 italic font-medium">{sellerInfo.company}</p>
-    )}
+            {sellerInfo.company && (
+              <p className="text-gray-500 italic font-medium">{sellerInfo.company}</p>
+            )}
 
-    <p className="text-gray-600 font-normal">{sellerInfo.email}</p>
+            <p className="text-gray-600 font-normal">{sellerInfo.email}</p>
 
-    {subscription && (
-      <div className="mt-2 bg-green-50 border border-green-200 p-3 rounded-md text-sm">
-        <p>
-          <strong>Plan:</strong> {subscription.plan}
-        </p>
-        <p>
-          <strong>Credits Left:</strong> {subscription.credits} /{" "}
-          {subscription.maxFreeCredits}
-        </p>
-        <p>
-          <strong>Status:</strong>{" "}
-          <span
-            className={`font-semibold ${
-              subscription.status === "active"
-                ? "text-green-600"
-                : "text-red-500"
-            }`}
-          >
-            {subscription.status}
-          </span>
-        </p>
+            {subscription && (
+              <div className="mt-2 bg-green-50 border border-green-200 p-3 rounded-md text-sm">
+                <p>
+                  <strong>Plan:</strong> {subscription.plan}
+                </p>
+                <p>
+                  <strong>Credits Left:</strong> {subscription.credits} / {subscription.maxCredits}
 
-        {/* 🔽 Added Upgrade Plan Button Here */}
-        {subscription.credits <= 0 && (
-          <button
-            onClick={() => navigate(`/subscriptions?seller=${uid}`)}
-            className="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
-          >
-            Upgrade Plan
-          </button>
-        )}
-      </div>
-    )}
-  </div>
-</div>
+                </p>
+                <p>
+                  <strong>Status:</strong>{" "}
+                  <span
+                    className={`font-semibold ${subscription.status === "active"
+                      ? "text-green-600"
+                      : "text-red-500"
+                      }`}
+                  >
+                    {subscription.status}
+                  </span>
+                </p>
+
+                {/* 🔽 Added Upgrade Plan Button Here */}
+                {subscription.credits <= 0 && (
+                  <button
+                    onClick={() => navigate(`/subscriptions?seller=${uid}`)}
+                    className="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
+                  >
+                    Upgrade Plan
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Add Product Button */}
         <div className="mb-6">
+          {subscription?.status === "suspended" && (
+            <div className="mb-4 rounded-lg border border-yellow-300 bg-yellow-50 p-3 text-yellow-800">
+              Your plan is <b>suspended</b>. Renew your subscription to resume publishing.
+            </div>
+          )}
+          {subscription?.status === "deactivated" && (
+            <div className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">
+              Your plan is <b>deactivated</b>. Reactivate your subscription to regain access.
+            </div>
+          )}
+
           <button
             onClick={() => navigate(`/seller/${uid}/add-products`)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg shadow"
+            disabled={subscription?.credits <= 0 || subscription?.status !== "active"}
+            className={`px-6 py-2 rounded-lg shadow font-semibold ${subscription?.credits <= 0 || subscription?.status !== "active"
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-600 text-white"
+              }`}
           >
             ➕ Add Product
           </button>
+
+
+
         </div>
 
         {/* Stats Cards */}
