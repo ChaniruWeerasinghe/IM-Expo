@@ -14,6 +14,76 @@ const Discover = () => {
     const [filteredProducts, setFilteredProducts] = useState([]); // ✅ for search display
     const [searchTerm, setSearchTerm] = useState(""); // ✅ for live search input
     const [sellers, setSellers] = useState([]);
+    const [visibleTrending, setVisibleTrending] = useState(5);
+    const [visibleTopRated, setVisibleTopRated] = useState(5);
+    const [visibleTopSelling, setVisibleTopSelling] = useState(5);
+    const [topSellingProducts, setTopSellingProducts] = useState([]);
+
+    // 🔹 Fetch Approved Orders + Product Details for Top Selling Section
+    useEffect(() => {
+        const ordersRef = ref(db, "orderRequests");
+        const productsRef = ref(db, "products");
+
+        // Read both orderRequests and products
+        onValue(ordersRef, (orderSnap) => {
+            const ordersData = orderSnap.val();
+            if (!ordersData) return;
+
+            onValue(productsRef, (productSnap) => {
+                const productsData = productSnap.val();
+                if (!productsData) return;
+
+                // keep each product’s key for proper matching
+                const productsArray = Object.entries(productsData).map(([key, value]) => ({
+                    id: key,
+                    ...value,
+                }));
+
+                const approvedOrders = Object.values(ordersData).filter(
+                    (order) => order.status === "Approved"
+                );
+
+                // Merge orders with their matching product info
+                const merged = approvedOrders.flatMap((order) => {
+                    const matches = productsArray.filter(
+                        (p) => p.id === order.productId || p.productId === order.productId
+                    );
+
+                    return matches.map((match) => ({
+                        ...order,
+                        productName: match?.name || order.productName || "Unnamed Product",
+                        name: match?.name || order.productName || "Unnamed Product", // ✅ ensures ProductCard sees the name
+                        productImage: match?.image || "/assets/default-product.png",
+                        category: match?.category || "Uncategorized",
+                    }));
+                });
+
+
+
+                // ✅ Remove duplicates by productId — only keep the highest quantity per product
+                const uniqueProductsMap = new Map();
+
+                merged.forEach((item) => {
+                    const pid = item.productId;
+                    if (!uniqueProductsMap.has(pid) || (item.quantity || 0) > (uniqueProductsMap.get(pid).quantity || 0)) {
+                        uniqueProductsMap.set(pid, item);
+                    }
+                });
+
+                const uniqueProducts = Array.from(uniqueProductsMap.values());
+
+                // ✅ Sort by quantity descending
+                const sorted = uniqueProducts
+                    .sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+                    .slice(0, 8);
+
+                setTopSellingProducts(sorted);
+
+            });
+        });
+    }, []);
+
+
 
     // 🔹 Fetch Products from Firebase
     useEffect(() => {
@@ -67,9 +137,8 @@ const Discover = () => {
         .sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0))
         .slice(0, 8);
 
-    const topSelling = [...filteredProducts]
-        .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
-        .slice(0, 8);
+
+
 
 
     return (
@@ -101,55 +170,98 @@ const Discover = () => {
             {/* ---------------- Trending Products ---------------- */}
             <section className="py-16 px-6 lg:px-12">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">🔥 Trending Products</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Trending Products</h2>
                     <p className="text-gray-600">Most viewed items this week.</p>
                 </div>
 
                 {trending.length > 0 ? (
-                    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {trending.map((product, index) => (
-                            <ProductCard key={index} product={product} />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
+                            {trending.slice(0, visibleTrending).map((product, index) => (
+                                <ProductCard key={index} product={product} />
+                            ))}
+                        </div>
+
+                        {visibleTrending < 15 && trending.length > visibleTrending && (
+                            <div className="text-center mt-8">
+                                <button
+                                    onClick={() => setVisibleTrending((prev) => prev + 5)}
+                                    className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
+                                >
+                                    Explore More
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <p className="text-center text-gray-500">No trending products yet.</p>
                 )}
+
             </section>
 
             {/* ---------------- Top Rated Products ---------------- */}
             <section className="py-16 px-6 lg:px-12 bg-gray-50 border-t border-gray-200">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">⭐ Top Rated Products</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Top Rated Products</h2>
                     <p className="text-gray-600">Highly rated by verified buyers.</p>
                 </div>
 
                 {topRated.length > 0 ? (
-                    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {topRated.map((product, index) => (
-                            <ProductCard key={index} product={product} />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
+                            {topRated.slice(0, visibleTopRated).map((product, index) => (
+                                <ProductCard key={index} product={product} />
+                            ))}
+                        </div>
+
+                        {visibleTopRated < 15 && topRated.length > visibleTopRated && (
+                            <div className="text-center mt-8">
+                                <button
+                                    onClick={() => setVisibleTopRated((prev) => prev + 5)}
+                                    className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
+                                >
+                                    Explore More
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <p className="text-center text-gray-500">No top rated products yet.</p>
                 )}
+
             </section>
 
             {/* ---------------- Top Selling Products ---------------- */}
             <section className="py-16 px-6 lg:px-12 bg-white border-t border-gray-200">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">💰 Top Selling Items</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-3">Top Selling Items</h2>
                     <p className="text-gray-600">Best performing products by sales volume.</p>
                 </div>
 
-                {topSelling.length > 0 ? (
-                    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {topSelling.map((product, index) => (
-                            <ProductCard key={index} product={product} />
-                        ))}
-                    </div>
+                {topSellingProducts.length > 0 ? (
+                    <>
+                        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
+                            {topSellingProducts.slice(0, visibleTopSelling).map((product, index) => (
+                                <ProductCard key={index} product={product} />
+                            ))}
+                        </div>
+
+                        {visibleTopSelling < 15 && topSellingProducts.length > visibleTopSelling && (
+                            <div className="text-center mt-8">
+                                <button
+                                    onClick={() => setVisibleTopSelling((prev) => prev + 5)}
+                                    className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
+                                >
+                                    Explore More
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <p className="text-center text-gray-500">No top selling products yet.</p>
                 )}
+
+
             </section>
 
 

@@ -1,33 +1,46 @@
+// src/components/ProductCard.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
 const ProductCard = ({ product }) => (
-  <div className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition">
+  <div className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition h-full flex flex-col">
+    {/* Product Image */}
     <img
-      src={product.image || "/assets/placeholder.png"}
+      src={
+        product.image ||
+        product.imageURL ||
+        product.productImage ||
+        "/assets/placeholder.png"
+      }
+
       alt={product.name}
       className="w-full h-48 object-cover"
     />
-    <div className="p-4">
-      <h3 className="font-semibold text-lg text-gray-800 mb-1">
-        {product.name || "Unnamed Product"}
-      </h3>
-      <p className="text-gray-600 text-sm mb-1">
-        {product.category || "Uncategorized"}
-      </p>
-      <p className="text-sm text-gray-500 mb-3">
-        Seller: {product.sellerName || "Unknown"}
-      </p>
-      <p className="text-sm text-gray-500 mb-2">
-        👁️ Views: {product.views || 0} | ⭐ {product.avgRating || 0} | 💰{" "}
-        {product.salesCount || 0}
-      </p>
-      <Link
-        to="/portfolio"
-        className="text-green-500 font-medium hover:underline"
-      >
-        View Product →
-      </Link>
+
+    {/* Card Content */}
+    <div className="flex flex-col justify-between flex-1 p-4">
+      {/* Product name always at top */}
+      <div>
+        <h3 className="font-semibold text-lg text-gray-800 mb-2 leading-tight">
+          {product.name || "Unnamed Product"}
+        </h3>
+      </div>
+
+      {/* Category, seller, and button grouped at bottom */}
+      <div className="mt-auto">
+        <p className="text-gray-600 text-sm mb-1">
+          {product.category || "Uncategorized"}
+        </p>
+        <p className="text-sm text-gray-500 mb-3">
+          Seller: {product.sellerName || "Unknown"}
+        </p>
+        <Link
+          to="/portfolio"
+          className="inline-block bg-green-500 text-white text-sm font-medium px-4 py-1 rounded-lg shadow-sm hover:bg-green-600 hover:shadow-md transition-all duration-200"
+        >
+          View Product
+        </Link>
+      </div>
     </div>
   </div>
 );
