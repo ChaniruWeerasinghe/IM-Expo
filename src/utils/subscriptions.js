@@ -14,3 +14,13 @@ export const planMonthlyCredits = (plan, maxCredits) => {
 export const verificationType = (hasPermit) => {
   return hasPermit ? "free" : "paid";
 };
+
+
+// ✅ Prevent Free plan reactivation before 30 days
+export const canActivateFreePlan = (lastActivatedDate) => {
+  if (!lastActivatedDate) return true; // first time
+  const last = new Date(lastActivatedDate);
+  const now = new Date();
+  const diffDays = (now - last) / (1000 * 60 * 60 * 24);
+  return diffDays >= 30; // only allow after 30 days
+};

@@ -1,7 +1,14 @@
 // src/components/Subscriptions.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import styles from "./Subscriptions.module.css"; // keep your existing module css
+
+import { ref, get } from "firebase/database";
+import { db, auth } from "../firebase";
+import { canActivateFreePlan } from "../utils/subscriptions";
+
+
+
 
 const subscriptions = [
   {
@@ -39,10 +46,32 @@ const Subscriptions = () => {
   const [proCredits, setProCredits] = useState(10);
   const navigate = useNavigate();
   const location = useLocation();
+  const [freeLocked, setFreeLocked] = useState(false);
+
 
   // try to read seller ID from query string (header or seller dashboard should pass it)
   const queryParams = new URLSearchParams(location.search);
   const sellerUID = queryParams.get("seller") || null;
+
+
+  useEffect(() => {
+    const checkFreePlanStatus = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const snap = await get(ref(db, `users/sellers/${user.uid}`));
+      if (snap.exists()) {
+        const data = snap.val();
+        const lastActivated = data?.lastFreePlanActivated;
+        if (!canActivateFreePlan(lastActivated)) {
+          setFreeLocked(true);
+        }
+      }
+    };
+
+    checkFreePlanStatus();
+  }, []);
+
 
   // When user clicks Subscribe — redirect to payment page (pass plan + sellerUID + credits)
   const handleSubscribe = (plan) => {
@@ -127,11 +156,19 @@ const Subscriptions = () => {
             </ul>
 
             <button
-              className={styles.planButton}
-              onClick={() => handleSubscribe(plan)}
+              className={`${styles.planButton} ${plan.type === "Free" && freeLocked ? styles.disabled : ""}`}
+              onClick={() => {
+                if (plan.type === "Free" && freeLocked) {
+                  alert("You can only activate the Free plan once every 30 days.");
+                  return;
+                }
+                handleSubscribe(plan);
+              }}
+              disabled={plan.type === "Free" && freeLocked}
             >
-              Subscribe
+              {plan.type === "Free" && freeLocked ? "Locked (Wait 30 days)" : "Subscribe"}
             </button>
+
           </div>
         ))}
       </div>

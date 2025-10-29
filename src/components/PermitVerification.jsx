@@ -52,15 +52,27 @@ const PermitVerification = () => {
                 requestedAt: new Date().toISOString(),
             });
 
-            // mark user as pending
-            await set(ref(db, `users/buyers/${user.uid}/verification`), {
+            // mark user as pending in the correct user group
+            const rolePath = user.email.includes("seller")
+                ? "users/sellers"
+                : "users/buyers";
+
+            await set(ref(db, `${rolePath}/${user.uid}/verification`), {
                 status: "Pending",
                 type: "free",
             });
 
+
             setSuccess(true);
 
-            setTimeout(() => navigate(`/buyer/${user.uid}`), 2500);
+            setTimeout(() => {
+                if (user.email.includes("seller")) {
+                    navigate(`/seller/${user.uid}`);
+                } else {
+                    navigate(`/buyer/${user.uid}`);
+                }
+            }, 2500);
+
         } catch (err) {
             console.error(err);
             alert("Error submitting verification request. Try again.");

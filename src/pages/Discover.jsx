@@ -7,6 +7,11 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 
+import TopVerifiedSellers from "../components/TopVerifiedSellers";
+import TopVerifiedBuyers from "../components/TopVerifiedBuyers";
+
+import { motion } from "framer-motion";
+
 
 // ---------------- Discover Page ----------------
 const Discover = () => {
@@ -265,47 +270,14 @@ const Discover = () => {
             </section>
 
 
-            {/* ---------------- Top Verified Sellers ---------------- */}
-            <section className="bg-white py-16 px-6 lg:px-12 border-t border-gray-200">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                        Top Verified Sellers
-                    </h2>
-                    <p className="text-gray-600">
-                        Meet the most trusted and active sellers on IM-Expo.
-                    </p>
-                </div>
 
-                {sellers.length > 0 ? (
-                    <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {sellers.slice(0, 8).map((seller, index) => (
-                            <div
-                                key={index}
-                                className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition text-center"
-                            >
-                                <img
-                                    src={seller.profileImage || "/assets/avatar.png"}
-                                    alt={seller.name}
-                                    className="w-24 h-24 mx-auto rounded-full mb-4 object-cover"
-                                />
-                                <h3 className="font-semibold text-lg text-gray-800">
-                                    {seller.name}
-                                </h3>
-                                <p className="text-sm text-gray-500 mb-2">
-                                    {seller.location || "Sri Lanka"}
-                                </p>
-                                <span className="inline-block bg-green-100 text-green-700 px-3 py-1 text-xs rounded-full">
-                                    Verified Seller
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-center text-gray-500">
-                        No verified sellers available yet.
-                    </p>
-                )}
-            </section>
+            {/* ---------------- Top Verified Sellers ---------------- */}
+            <TopVerifiedSellers />
+            <TopVerifiedBuyers />
+
+
+
+
 
             {/* ---------------- Categories ---------------- */}
             <section className="py-16 px-6 lg:px-12 bg-gray-50 border-t border-gray-200">

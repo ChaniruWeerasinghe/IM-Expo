@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ref, get, set, update, serverTimestamp } from "firebase/database";
 import { db, auth } from "../firebase";
 import { planMonthlyCredits } from "../utils/subscriptions";
+import { canActivateFreePlan } from "../utils/subscriptions";
+
 
 export default function SubscriptionsPay() {
   const location = useLocation();
@@ -49,12 +51,21 @@ export default function SubscriptionsPay() {
         };
         await set(buyerRef, verifyData);
 
-        alert("✅ You are now an IM-Expo Verified Buyer!");
+        // ✅ Mark seller as verified when subscribed
+        await set(ref(db, `users/sellers/${sellerUID}/verification`), {
+          status: "Verified",
+          type: "paid",
+          subscribedAt: nowISO,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
 
-        // ✅ Redirect buyer after alert confirmation
+        alert("✅ Subscription activated & seller verified successfully!");
+
+        // ✅ Redirect seller after alert confirmation
         setTimeout(() => {
-          navigate(`/buyer/${user.uid}`);
+          navigate(`/seller/${sellerUID}`);
         }, 300);
+
 
         return;
       }
@@ -62,29 +73,55 @@ export default function SubscriptionsPay() {
       // ✅ Case 2: Seller subscribing for upload credits
       if (sellerSnap.exists()) {
         const subRef = ref(db, `subscriptions/sellers/${sellerUID}`);
+        const subSnap = await get(subRef);
+        const subData = subSnap.exists() ? subSnap.val() : {};
+        const now = new Date();
+
+        // 🔒 Strict Free plan restriction
+        if (plan === "Free") {
+          if (subData?.lastFreePlanActivated) {
+            const last = new Date(subData.lastFreePlanActivated);
+            const diffDays = (now - last) / (1000 * 60 * 60 * 24);
+
+            // ⛔ Stop here if 30 days not passed
+            if (diffDays < 30) {
+              alert("⚠️ You can only activate the Free plan once every 30 days.");
+              setSaving(false);
+              return;
+            }
+          }
+        }
+
+        // ✅ Build new payload
         const payload = {
           plan,
           maxCredits,
           credits: maxCredits,
           status: "active",
-          lastPaymentAt: nowISO,
-          lastReset: nowISO,
+          lastPaymentAt: now.toISOString(),
+          lastReset: now.toISOString(),
           updatedAt: serverTimestamp(),
         };
 
-        const snap = await get(subRef);
-        if (snap.exists()) await update(subRef, payload);
-        else await set(subRef, payload);
+        // ✅ Track last free activation
+        if (plan === "Free") payload.lastFreePlanActivated = now.toISOString();
+
+        await set(subRef, payload); // overwrite cleanly, simpler than update()
 
         alert("✅ Subscription activated successfully!");
-
-        // ✅ Redirect seller after alert confirmation
         setTimeout(() => {
           navigate(`/seller/${sellerUID}`);
         }, 300);
 
         return;
       }
+
+
+
+
+
+
+
 
       // Fallback — unknown user type
       alert("User role not identified. Please re-login and try again.");
