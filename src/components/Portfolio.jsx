@@ -1,7 +1,7 @@
-// src/components/Portfolio.jsx
+// /src/components/Portfolio.jsx
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
-import { ref, onValue, push, update } from "firebase/database";
+import { db, auth } from "../firebase";
+import { ref, onValue, push, update, get, set } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductReview from "./ProductReview";
 import styles from "./ProductModal.module.css"; // ✅ Import external modal CSS
@@ -52,7 +52,7 @@ const Portfolio = () => {
   // 🔹 Filter products
   useEffect(() => {
     let result = products.filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase())
+      (p.name || "").toLowerCase().includes(search.toLowerCase())
     );
     if (category !== "All")
       result = result.filter((p) => p.category === category);
@@ -60,27 +60,93 @@ const Portfolio = () => {
   }, [search, category, products]);
 
   // 🔹 Contact Seller
-  const contactSeller = (product) => {
-    if (!product.id || !product.seller) {
+  const contactSeller = async (product) => {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Please log in as a buyer to contact the seller.");
+    return;
+  }
+
+  try {
+    // Ensure messages and buyerMessages nodes exist
+    const ensurePathExists = async (path) => {
+      const node = ref(db, path);
+      const snap = await get(node);
+      if (!snap.exists()) {
+        await set(node, { _init: true });
+      }
+    };
+    await ensurePathExists("messages");
+    await ensurePathExists("buyerMessages");
+
+    // Fetch buyer info
+    const buyerSnap = await get(ref(db, `users/buyers/${user.uid}`));
+    const buyerData = buyerSnap.exists() ? buyerSnap.val() : {};
+    const buyerName =
+      buyerData.name || user.displayName || user.email.split("@")[0];
+    const buyerEmail = buyerData.email || user.email;
+
+    // Validate product
+    if (!product?.id) {
+      alert("Cannot send message: product ID missing.");
+      return;
+    }
+
+    // Fetch product again to ensure sellerUID is valid
+    const productSnap = await get(ref(db, `products/${product.id}`));
+    const productData = productSnap.exists() ? productSnap.val() : product;
+    const sellerUID =
+      productData.sellerUID || product.sellerUID || product.seller?.uid;
+
+    if (!sellerUID) {
       alert("Cannot send message: product or seller info missing.");
       return;
     }
 
-    const message = prompt(
-      `Send a message to ${product.seller}:`,
-      "Hello, I am interested in your product."
-    );
-    if (message) {
-      const messagesRef = ref(db, "messages");
-      push(messagesRef, {
-        productId: product.id,
-        seller: product.seller,
-        message,
-        date: new Date().toISOString(),
-      });
-      alert("Message sent successfully!");
-    }
-  };
+    // Fetch seller info
+    const sellerSnap = await get(ref(db, `users/sellers/${sellerUID}`));
+    const sellerData = sellerSnap.exists() ? sellerSnap.val() : {};
+    const sellerName =
+      sellerData.name || product.sellerName || "Seller";
+    const sellerEmail = sellerData.email || product.sellerEmail || "";
+
+    // Auto-generated message
+    const messageText = `Hello ${sellerName}, I’m ${buyerName} (${buyerEmail}). I’m interested in your product "${productData.name ||
+      "Unnamed Product"}". Please share more details.`;
+
+    // Save message for seller
+    const msgRef = push(ref(db, `messages/${sellerUID}`));
+    const safeValue = (val, fallback = "") =>
+  val === undefined || val === null ? fallback : val;
+
+const messageObj = {
+  buyerUID: safeValue(user.uid),
+  buyerName: safeValue(buyerName),
+  buyerEmail: safeValue(buyerEmail),
+  productId: safeValue(productData.id || product.id || product.productId, "unknown"),
+  productName: safeValue(productData.name || product.name, "Unnamed Product"),
+  message: safeValue(messageText),
+  timestamp: new Date().toISOString(),
+  status: "unread",
+};
+
+await set(msgRef, messageObj);
+
+    // Mirror to buyerMessages
+    const buyerMsgRef = push(ref(db, `buyerMessages/${user.uid}`));
+    await set(buyerMsgRef, {
+      ...messageObj,
+      fromSeller: sellerName,
+    });
+
+    alert("✅ Your message has been sent to the seller!");
+  } catch (error) {
+  console.error("Error sending message:", error.code, error.message);
+  alert(`❌ Failed to send message: ${error.message}`);
+}
+
+};
+
 
   // 🔹 Request Import Permission
   const requestPermission = (product) => {
@@ -250,24 +316,20 @@ const Portfolio = () => {
                     <div className={styles["info-block"]}>
                       <h4 className={styles["rate-title"]}>Quality Assurance</h4>
                       <p className={styles["action-desc"]}>
-                        Buyers can rate the product quality and share their experience after
-                        receiving the item to help improve the marketplace standards.
+                        Buyers who purchased these products can provide ratings. Below is
+                        the current rating based on verified buyer feedback.
                       </p>
                     </div>
                   </div>
 
                   <hr className={styles["divider"]} />
 
-                  {/* Rating Section */}
+                  {/* Read-only Ratings Section (avg + count) */}
                   <div className={styles["rate-section"]}>
-                    <h4 className={styles["rate-title-custom"]}>Rate this Product</h4>
-                    <ProductReview productId={selectedProduct.id} />
+                    <h4 className={styles["rate-title-custom"]}>Product Rating</h4>
+                    <ProductReview productId={selectedProduct.id} mode="read" />
                   </div>
-
-
-
                 </div>
-
               </div>
 
               <div className={styles["bottom-buttons"]}>
@@ -286,7 +348,6 @@ const Portfolio = () => {
                   Request Import Permission
                 </button>
               </div>
-
             </motion.div>
           </motion.div>
         )}

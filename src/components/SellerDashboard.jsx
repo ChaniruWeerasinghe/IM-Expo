@@ -19,6 +19,7 @@ import {
   remove,
   query,
   orderByChild,
+  serverTimestamp,
   equalTo,
 } from "firebase/database";
 
@@ -601,6 +602,12 @@ const SellerDashboard = () => {
           </div>
         )}
 
+                {/* 🔹 Buyer Messages Section */}
+        <div className="mt-12 mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Buyer Messages</h2>
+          <SellerMessages sellerUID={uid} />
+        </div>
+
         {/* Edit Modal */}
         {selectedProduct && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
@@ -665,6 +672,87 @@ const SellerDashboard = () => {
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+/* ---- 🔹 NEW SUBCOMPONENT: SellerMessages ---- */
+const SellerMessages = ({ sellerUID }) => {
+  const [messages, setMessages] = useState([]);
+  const [replies, setReplies] = useState({});
+
+  useEffect(() => {
+    if (!sellerUID) return;
+    const msgRef = ref(db, `messages/${sellerUID}`);
+    onValue(msgRef, (snap) => {
+      const data = snap.val() || {};
+      const msgs = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      setMessages(msgs.reverse());
+    });
+    return () => off(msgRef);
+  }, [sellerUID]);
+
+  const handleReply = async (msgId, buyerUID) => {
+    const text = replies[msgId];
+    if (!text?.trim()) return;
+    try {
+      await set(ref(db, `messages/${sellerUID}/${msgId}/reply`), {
+        text,
+        timestamp: serverTimestamp(),
+      });
+      await push(ref(db, `buyerMessages/${buyerUID}`), {
+        text,
+        from: sellerUID,
+        timestamp: serverTimestamp(),
+      });
+      setReplies((r) => ({ ...r, [msgId]: "" }));
+    } catch (e) {
+      console.error(e);
+      alert("❌ Failed to send reply.");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {messages.length > 0 ? (
+        messages.map((m) => (
+          <div key={m.id} className="bg-white p-4 rounded-xl shadow border border-gray-100">
+            <p className="text-gray-800 font-semibold">
+              From: {m.buyerName} ({m.buyerEmail})
+            </p>
+            <p className="text-gray-700 mt-1">{m.message}</p>
+            {m.productName && (
+              <p className="text-sm text-gray-500 mt-1">
+                Product: {m.productName}
+              </p>
+            )}
+            {m.reply && (
+              <p className="text-green-600 mt-2 font-medium">
+                Seller Reply: {m.reply.text}
+              </p>
+            )}
+            <div className="mt-3 flex gap-2">
+              <input
+                type="text"
+                placeholder="Type reply..."
+                value={replies[m.id] || ""}
+                onChange={(e) =>
+                  setReplies((r) => ({ ...r, [m.id]: e.target.value }))
+                }
+                className="flex-1 border rounded-lg px-3 py-1 text-sm"
+              />
+              <button
+                onClick={() => handleReply(m.id, m.buyerUID)}
+                className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500">No messages yet.</p>
+      )}
     </div>
   );
 };

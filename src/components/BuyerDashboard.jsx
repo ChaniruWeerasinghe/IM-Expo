@@ -1,10 +1,12 @@
-// src/components/BuyerDashboard.jsx
+// /src/components/BuyerDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { db, auth } from "../firebase";
-import { ref, onValue, off, push, set, update, remove } from "firebase/database";
+import { ref, onValue, off, push, set, update, remove, get } from "firebase/database";
 import { signOut } from "firebase/auth";
 import "./OrderButton.css";
+import styles from "./ProductModal.module.css"; // reuse your modal style
+import ProductReview from "./ProductReview";
 
 import {
   LineChart,
@@ -28,8 +30,11 @@ const BuyerDashboard = () => {
   const [transactions, setTransactions] = useState([]);
   const [cartItems, setCartItems] = useState([]);
   const [stats, setStats] = useState({ totalSpent: 0, totalOrders: 0, pending: 0 });
-  const [collapsed, setCollapsed] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
+
+  // Rating modal state
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [ratingProduct, setRatingProduct] = useState(null); // { productId, productName }
 
   // 🔹 Logout function
   const handleLogout = async () => {
@@ -49,13 +54,12 @@ const BuyerDashboard = () => {
     const buyerRef = ref(db, `users/buyers/${uid}`);
     const transRef = ref(db, "transactions");
     const cartRef = ref(db, `carts/${uid}`);
-
     const verifyRef = ref(db, `users/buyers/${uid}/verification`);
+
     onValue(verifyRef, (snap) => {
       const data = snap.val();
       if (data) setVerification(data);
     });
-
 
     // ✅ Fetch Buyer Info
     onValue(buyerRef, (snapshot) => {
@@ -73,15 +77,15 @@ const BuyerDashboard = () => {
     onValue(transRef, (snapshot) => {
       const data = snapshot.val() || {};
       const buyerTx = Object.values(data).filter((t) => t.buyerUID === uid);
+
       setTransactions(buyerTx);
 
-      const approvedTx = buyerTx.filter(t => t.status === "Approved");
-      const totalApprovedValue = approvedTx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      const approvedTx = buyerTx.filter((t) => t.status === "Approved");
+      const totalSpent = approvedTx.reduce((sum, t) => sum + Number(t.amount || 0), 0);
       const totalOrders = buyerTx.length;
-      const pending = buyerTx.filter(t => t.status === "Pending").length;
+      const pending = buyerTx.filter((t) => t.status === "Pending").length;
 
-      setStats({ totalApprovedValue, totalOrders, pending });
-
+      setStats({ totalSpent, totalOrders, pending });
     });
 
     // ✅ Fetch Cart + Seller Info
@@ -120,6 +124,7 @@ const BuyerDashboard = () => {
       off(buyerRef);
       off(transRef);
       off(cartRef);
+      off(verifyRef);
     };
   }, [uid]);
 
@@ -147,7 +152,6 @@ const BuyerDashboard = () => {
     const requestRef = ref(db, "orderRequests");
 
     for (let item of cartItems) {
-      // 🔹 Fetch product info
       const productSnap = await new Promise((resolve) => {
         const productRef = ref(db, `products/${item.productId}`);
         onValue(productRef, (snap) => resolve(snap.val()), { onlyOnce: true });
@@ -157,18 +161,21 @@ const BuyerDashboard = () => {
 
       const sellerUID = productSnap.sellerUID;
       let sellerName = "Unknown Seller";
+      let sellerEmail = "";
 
       if (sellerUID) {
         const sellerSnap = await new Promise((resolve) => {
           const sellerRef = ref(db, `users/sellers/${sellerUID}`);
           onValue(sellerRef, (snap) => resolve(snap.val()), { onlyOnce: true });
         });
-        if (sellerSnap) sellerName = sellerSnap.name || "Unknown Seller";
+        if (sellerSnap) {
+          sellerName = sellerSnap.name || "Unknown Seller";
+          sellerEmail = sellerSnap.email || "";
+        }
       }
 
       const amount = (productSnap.price || 0) * (item.quantity || 1);
 
-      // 🔹 Create a single transaction per cart item
       const newTransRef = push(transRef);
       const transactionId = newTransRef.key;
 
@@ -179,41 +186,38 @@ const BuyerDashboard = () => {
         price: productSnap.price || 0,
         quantity: item.quantity || 1,
         buyerUID: uid,
-        buyerName: buyerInfo.name || "N/A", // <-- add buyer name here
+        buyerName: buyerInfo.name || "N/A",
         sellerUID: sellerUID || "",
         sellerName,
-        sellerEmail: productSnap.sellerEmail || "",
+        sellerEmail,
         amount,
         status: "Pending",
         date: new Date().toISOString(),
-        orderRequestId: transactionId, // link order request to this transaction
+        orderRequestId: transactionId,
       });
 
-      // 🔹 Create order request (linked to transaction)
       const newReqRef = push(requestRef);
       await set(newReqRef, {
         buyerUID: uid,
-        buyerName: buyerInfo.name || "N/A", // <-- add buyer name here too
+        buyerName: buyerInfo.name || "N/A",
         sellerUID: sellerUID || "",
+        sellerName,
+        sellerEmail,
         productId: item.productId,
         productName: productSnap.name || item.productName,
         quantity: item.quantity || 1,
         amount,
         status: "Pending",
         date: new Date().toISOString(),
-        transactionId, // store the linked transaction
+        transactionId,
       });
 
-      // 🔹 Remove cart item
       const itemRef = ref(db, `carts/${uid}/${item.id}`);
       await remove(itemRef);
     }
-
-
   };
 
-
-  // 🔹 Charts data
+  // ---- Charts data ----
   const spendData = transactions
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .map((t) => ({ date: t.date, amount: Number(t.amount) }));
@@ -227,21 +231,34 @@ const BuyerDashboard = () => {
 
   const COLORS = ["#4ade80", "#60a5fa", "#facc15", "#f87171", "#a78bfa", "#34d399", "#f472b6"];
 
+  // ---- Rating Modal helpers ----
+  const openRatingModal = async (productId, productName) => {
+    // Guard: ensure at least one approved transaction for this buyer + product
+    const hasApproved = transactions.some(
+      (t) => t.status === "Approved" && t.productId === productId && t.buyerUID === uid
+    );
+    if (!hasApproved) {
+      alert("You can only rate products you have purchased (Approved orders).");
+      return;
+    }
+    setRatingProduct({ productId, productName });
+    setRatingModalOpen(true);
+  };
+
+  const closeRatingModal = () => {
+    setRatingModalOpen(false);
+    setRatingProduct(null);
+  };
+
   return (
     <div className="flex bg-gray-50 min-h-screen w-full overflow-hidden">
-
-
-
-
       {/* Sidebar */}
       <div className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-gray-200 flex flex-col justify-between shadow-md">
         <div>
-          {/* Header / Logo */}
           <div className="flex items-center justify-center py-6 border-b border-gray-200">
             <h2 className="text-2xl font-bold text-green-600">IM-Expo</h2>
           </div>
 
-          {/* Navigation */}
           <nav className="flex flex-col mt-6 space-y-1">
             <Link
               to="/"
@@ -250,10 +267,6 @@ const BuyerDashboard = () => {
               <i className="fas fa-home text-green-500"></i>
               <span>Main Dashboard</span>
             </Link>
-
-
-
-
             <Link
               to="/transactions"
               className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
@@ -261,7 +274,6 @@ const BuyerDashboard = () => {
               <i className="fas fa-receipt text-green-500"></i>
               <span>Transactions</span>
             </Link>
-
             <Link
               to="/portfolio"
               className="flex items-center gap-3 px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition"
@@ -272,7 +284,6 @@ const BuyerDashboard = () => {
           </nav>
         </div>
 
-        {/* Logout */}
         <div className="border-t border-gray-200 py-4">
           <button
             onClick={handleLogout}
@@ -284,11 +295,8 @@ const BuyerDashboard = () => {
         </div>
       </div>
 
-
-
       {/* Main */}
       <div className="flex-1 p-6 md:p-10 ml-64">
-
         {/* Buyer Info */}
         <div className="bg-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-100">
           <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 to-blue-500 flex items-center justify-center text-2xl font-bold text-white shadow-md">
@@ -299,26 +307,19 @@ const BuyerDashboard = () => {
             {buyerInfo.company && <p className="text-gray-500 italic font-medium">{buyerInfo.company}</p>}
             <p className="text-gray-600 font-normal">{buyerInfo.email}</p>
           </div>
-          {/* Verification Badge */}
           <div className="flex items-center gap-2 mt-2">
             {verification.status === "Verified" ? (
               <span
-                className={`px-3 py-1 rounded-full text-sm font-semibold ${verification.type === "free"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-green-100 text-green-700"
-                  }`}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  verification.type === "free" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+                }`}
               >
-                {verification.type === "free"
-                  ? "Authorized Buyer (Free Verified)"
-                  : "IM-Expo Verified Buyer"}
+                {verification.type === "free" ? "Authorized Buyer (Free Verified)" : "IM-Expo Verified Buyer"}
               </span>
             ) : (
-              <span className="px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700">
-                Not Verified
-              </span>
+              <span className="px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700">Not Verified</span>
             )}
           </div>
-
         </div>
 
         {/* Explore */}
@@ -334,11 +335,10 @@ const BuyerDashboard = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-white p-4 rounded-xl shadow">
-            <h3 className="text-gray-600 font-semibold">Total Revenue</h3>
+            <h3 className="text-gray-600 font-semibold">Total Spent</h3>
             <p className="text-3xl font-bold text-green-600">
-              ${stats.totalApprovedValue?.toFixed(2) || "0.00"}
+              ${stats.totalSpent?.toFixed(2) || "0.00"}
             </p>
-
           </div>
           <div className="bg-white p-4 rounded-xl shadow">
             <h3 className="text-gray-600 font-semibold">Total Orders</h3>
@@ -473,10 +473,17 @@ const BuyerDashboard = () => {
           )}
         </div>
 
+                {/* 🔹 Seller Replies Section */}
+        <div className="mt-12 mb-12">
+          <h2 className="text-2xl font-semibold mb-4">Seller Replies</h2>
+          <BuyerMessages buyerUID={uid} />
+        </div>
+
+
         {/* Transactions */}
         <div className="mt-12">
           <h2 className="text-2xl font-semibold mb-4">Pending Orders</h2>
-          {transactions.filter(t => t.status === "Pending").length > 0 ? (
+          {transactions.filter((t) => t.status === "Pending").length > 0 ? (
             <table className="min-w-full bg-white rounded-xl overflow-hidden mb-10">
               <thead>
                 <tr className="bg-gray-100 text-left">
@@ -490,7 +497,7 @@ const BuyerDashboard = () => {
               </thead>
               <tbody>
                 {transactions
-                  .filter(t => t.status === "Pending")
+                  .filter((t) => t.status === "Pending")
                   .map((t, i) => (
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="p-3 border-b">{t.productName}</td>
@@ -508,7 +515,7 @@ const BuyerDashboard = () => {
           )}
 
           <h2 className="text-2xl font-semibold mb-4">Approved Orders</h2>
-          {transactions.filter(t => t.status === "Approved").length > 0 ? (
+          {transactions.filter((t) => t.status === "Approved").length > 0 ? (
             <table className="min-w-full bg-white rounded-xl overflow-hidden">
               <thead>
                 <tr className="bg-gray-100 text-left">
@@ -518,11 +525,12 @@ const BuyerDashboard = () => {
                   <th className="p-3 border-b">Date</th>
                   <th className="p-3 border-b">Seller Name</th>
                   <th className="p-3 border-b">Seller Email</th>
+                  <th className="p-3 border-b">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {transactions
-                  .filter(t => t.status === "Approved")
+                  .filter((t) => t.status === "Approved")
                   .map((t, i) => (
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="p-3 border-b">{t.productName}</td>
@@ -531,6 +539,14 @@ const BuyerDashboard = () => {
                       <td className="p-3 border-b">{t.date}</td>
                       <td className="p-3 border-b">{t.sellerName || "N/A"}</td>
                       <td className="p-3 border-b">{t.sellerEmail || ""}</td>
+                      <td className="p-3 border-b">
+                        <button
+                          onClick={() => openRatingModal(t.productId, t.productName)}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                        >
+                          Rate Product
+                        </button>
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -539,14 +555,283 @@ const BuyerDashboard = () => {
             <p className="text-gray-500">No approved orders yet.</p>
           )}
         </div>
+      </div>
 
+      {/* Rating Modal (enhanced with live Firebase product details, larger, gradient) */}
+      {ratingModalOpen && ratingProduct && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={closeRatingModal}
+        >
+          <div
+            className={styles["modal-container"]}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "96%",
+              maxWidth: "960px",
+              minHeight: "520px",
+              position: "relative",
+              background: "linear-gradient(180deg, #ffffff 0%, #f0fff4 100%)",
+              borderRadius: "16px",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
+              padding: "1.25rem",
+            }}
+          >
+            {/* Small X top-right */}
+            <button
+              className={styles["close-btn"]}
+              onClick={closeRatingModal}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "16px",
+                fontSize: "1.25rem",
+                color: "#4b5563",
+                zIndex: 10,
+                lineHeight: 1,
+                width: "32px",
+                height: "32px",
+                borderRadius: "9999px",
+                background: "rgba(0,0,0,0.04)",
+                display: "grid",
+                placeItems: "center",
+              }}
+              aria-label="Close"
+              title="Close"
+            >
+              ×
+            </button>
 
+            {/* Modal Content */}
+            <RatingModalContent
+              productId={ratingProduct.productId}
+              closeRatingModal={closeRatingModal}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
+/* ---- Subcomponent: RatingModalContent ---- */
+const RatingModalContent = ({ productId, closeRatingModal }) => {
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // helper: fetch seller by UID from /users/sellers
+  const loadSellerByUid = async (sellerUID) => {
+    if (!sellerUID) return {};
+    // 1) direct path: /users/sellers/{sellerUID}
+    const directSnap = await get(ref(db, `users/sellers/${sellerUID}`));
+    if (directSnap.exists()) {
+      const s = directSnap.val();
+      return {
+        sellerName: s.name || s.displayName || s.companyName || "Seller",
+        sellerEmail: s.email || "",
+      };
+    }
+    // 2) fallback: find child where .uid == sellerUID
+    const allSnap = await get(ref(db, "users/sellers"));
+    if (allSnap.exists()) {
+      const all = allSnap.val();
+      for (const key of Object.keys(all)) {
+        const s = all[key];
+        if (s?.uid === sellerUID) {
+          return {
+            sellerName: s.name || s.displayName || s.companyName || "Seller",
+            sellerEmail: s.email || "",
+          };
+        }
+      }
+    }
+    return {};
+  };
 
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!productId) return;
+
+      try {
+        // load product once
+        const prodSnap = await get(ref(db, `products/${productId}`));
+        const data = prodSnap.val();
+        if (!data) {
+          if (isMounted) {
+            setProduct(null);
+            setLoading(false);
+          }
+          return;
+        }
+
+        // enrich with seller info when missing
+        let enriched = { id: productId, ...data };
+        const needsSellerLookup =
+          !enriched.sellerName || enriched.sellerName === "Unknown Seller";
+
+        if (needsSellerLookup && enriched.sellerUID) {
+          const sellerInfo = await loadSellerByUid(enriched.sellerUID);
+          enriched = { ...enriched, ...sellerInfo };
+        }
+
+        if (isMounted) {
+          setProduct(enriched);
+          setLoading(false);
+        }
+      } catch (e) {
+        if (isMounted) {
+          console.error("Failed to load product/seller:", e);
+          setProduct(null);
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [productId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        Loading product details...
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        Product not found.
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles["modal-content"]}>
+      {/* Left side: product details */}
+      <div className={styles.left} style={{ flex: "1.2" }}>
+        <img
+          src={product.image || "https://via.placeholder.com/300"}
+          alt={product.name}
+          className={styles["product-image"]}
+          style={{ maxHeight: "220px", borderRadius: "12px" }}
+        />
+        <h3 className={styles["product-name"]} style={{ marginTop: "1rem", fontSize: "1.5rem" }}>
+          {product.name}
+        </h3>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", margin: "6px 0" }}>
+          <span className={styles.category}>{product.category || "Uncategorized"}</span>
+          <span className={styles.price}>${product.price || "N/A"}</span>
+        </div>
+
+        <p className={styles.description} style={{ marginTop: "0.75rem", fontSize: "0.95rem" }}>
+          {product.description || "No description available for this product."}
+        </p>
+
+        <hr style={{ margin: "1rem 0", borderColor: "#e5e7eb" }} />
+
+        <div style={{ fontSize: "0.9rem", color: "#555" }}>
+          <p>
+            <strong>Seller:</strong> {product.sellerName || "Unknown Seller"}
+          </p>
+          {product.sellerEmail && (
+            <p>
+              <strong>Email:</strong> {product.sellerEmail}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Right side: rating */}
+      <div
+        className={styles.right}
+        style={{ flex: "0.9", borderLeft: "1px solid #e5e7eb", paddingLeft: "1.5rem" }}
+      >
+        <div className={styles["info-block"]}>
+          <h4 className={styles["rate-title"]} style={{ marginBottom: "1rem" }}>
+            Your Rating
+          </h4>
+          <ProductReview productId={productId} mode="rate" onSubmitted={closeRatingModal} />
+        </div>
+        <p className={styles["action-desc"]} style={{ marginTop: "1.5rem" }}>
+          Rate the product based on your experience. Your feedback helps other buyers and boosts
+          trusted sellers on IM-Expo.
+        </p>
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display: "flex", gap: "10px", marginTop: "16px" }}>
+        <button
+          onClick={closeRatingModal}
+          style={{
+            flex: "1",
+            border: "1px solid #e5e7eb",
+            background: "#fff",
+            color: "#374151",
+            borderRadius: "10px",
+            padding: "10px 12px",
+            fontWeight: 600,
+          }}
+        >
+          Close
+        </button>
+        <a
+          href={`/portfolio#${product.id}`}
+          style={{
+            flex: "1",
+            background: "#10b981",
+            color: "white",
+            borderRadius: "10px",
+            padding: "10px 12px",
+            textAlign: "center",
+            fontWeight: 700,
+          }}
+        >
+          View in Portfolio
+        </a>
       </div>
     </div>
   );
 };
 
+/* ---- 🔹 NEW SUBCOMPONENT: BuyerMessages ---- */
+const BuyerMessages = ({ buyerUID }) => {
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    if (!buyerUID) return;
+    const msgRef = ref(db, `buyerMessages/${buyerUID}`);
+    onValue(msgRef, (snap) => {
+      const data = snap.val() || {};
+      const msgs = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+      setMessages(msgs.reverse());
+    });
+    return () => off(msgRef);
+  }, [buyerUID]);
+
+  return (
+    <div className="space-y-3">
+      {messages.length > 0 ? (
+        messages.map((m) => (
+          <div
+            key={m.id}
+            className="bg-white p-4 rounded-xl shadow border border-gray-100"
+          >
+            <p className="text-gray-700">{m.text}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {m.timestamp
+                ? new Date(m.timestamp).toLocaleString()
+                : "Unknown time"}
+            </p>
+          </div>
+        ))
+      ) : (
+        <p className="text-gray-500">No replies from sellers yet.</p>
+      )}
+    </div>
+  );
+};
 export default BuyerDashboard;
