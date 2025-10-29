@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { ref, onValue, update } from "firebase/database";
 import { db, auth } from "../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { FaUpload } from "react-icons/fa";
+
 
 const ProductReview = ({ productId }) => {
   const [user] = useAuthState(auth);
@@ -58,45 +60,36 @@ const ProductReview = ({ productId }) => {
   };
 
   return (
-    <div className="mt-6 border-t border-gray-200 pt-4">
-      <h4 className="text-lg font-semibold text-gray-800 mb-3 text-center">
-        Rate this Product
-      </h4>
+    <div className="mt-4">
+      
 
-      {/* Star Buttons */}
-      <div className="flex justify-center mb-4">
+      {/* Stars + Submit Icon */}
+      <div className="flex items-center justify-center gap-2">
         {[1, 2, 3, 4, 5].map((num) => (
           <button
             key={num}
             onMouseEnter={() => setHover(num)}
             onMouseLeave={() => setHover(0)}
             onClick={() => setRating(num)}
-            className={`text-3xl transition ${
-              num <= (hover || rating)
+            className={`text-3xl transition ${num <= (hover || rating)
                 ? "text-yellow-400 scale-110"
                 : "text-gray-300"
-            }`}
+              }`}
           >
             ★
           </button>
         ))}
-      </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-center">
+        {/* Upload Icon next to stars */}
         <button
           onClick={submitRating}
-          className="bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition"
+          className="bg-green-500 hover:bg-green-600 text-white rounded-full p-1.5 transition transform hover:scale-110 flex items-center justify-center"
         >
-          Submit Rating
+          <FaUpload size={14} />
         </button>
       </div>
 
-      {/* Current Average */}
-      <p className="mt-3 text-sm text-gray-700 text-center">
-        Average Rating:{" "}
-        <span className="font-semibold text-green-600">{avgRating || 0}</span> ⭐
-      </p>
+
     </div>
   );
 };

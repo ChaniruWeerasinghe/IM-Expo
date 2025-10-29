@@ -5,6 +5,10 @@ import { ref, get, set, update, serverTimestamp } from "firebase/database";
 import { db, auth } from "../firebase";
 import { planMonthlyCredits } from "../utils/subscriptions";
 import { canActivateFreePlan } from "../utils/subscriptions";
+import { runTransaction } from "firebase/database";
+import styles from "./SubscriptionsPay.module.css";
+
+
 
 
 export default function SubscriptionsPay() {
@@ -73,48 +77,78 @@ export default function SubscriptionsPay() {
       // ✅ Case 2: Seller subscribing for upload credits
       if (sellerSnap.exists()) {
         const subRef = ref(db, `subscriptions/sellers/${sellerUID}`);
-        const subSnap = await get(subRef);
-        const subData = subSnap.exists() ? subSnap.val() : {};
-        const now = new Date();
 
-        // 🔒 Strict Free plan restriction
-        if (plan === "Free") {
-          if (subData?.lastFreePlanActivated) {
-            const last = new Date(subData.lastFreePlanActivated);
-            const diffDays = (now - last) / (1000 * 60 * 60 * 24);
+        // Use a transaction so the check+write is atomic
+        const result = await runTransaction(subRef, (current) => {
+          const nowMs = Date.now();
 
-            // ⛔ Stop here if 30 days not passed
-            if (diffDays < 30) {
-              alert("⚠️ You can only activate the Free plan once every 30 days.");
-              setSaving(false);
-              return;
+          // Initialize if empty
+          if (!current) {
+            current = {
+              plan: "Free",
+              status: "active",
+              maxCredits: 1,
+              credits: 1,
+              lastReset: new Date(nowMs).toISOString(),
+              lastFreePlanActivated: null, // will be millis when set
+            };
+          }
+
+          if (plan === "Free") {
+            if (current.lastFreePlanActivated) {
+              const diffDays = (nowMs - current.lastFreePlanActivated) / (1000 * 60 * 60 * 24);
+              if (diffDays < 30) {
+                // Abort by returning current unchanged
+                return current;
+              }
             }
+
+            // Allow Free plan once per 30 days
+            return {
+              plan: "Free",
+              maxCredits: 1,
+              credits: 1,
+              status: "active",
+              lastPaymentAt: new Date(nowMs).toISOString(),
+              lastReset: new Date(nowMs).toISOString(),
+              updatedAt: nowMs,
+              lastFreePlanActivated: nowMs, // 🔴 store MILLIS
+            };
+          }
+
+          // Paid plans (Starter/Pro)
+          return {
+            plan,
+            maxCredits,
+            credits: maxCredits,
+            status: "active",
+            lastPaymentAt: new Date(nowMs).toISOString(),
+            lastReset: new Date(nowMs).toISOString(),
+            updatedAt: nowMs,
+            lastFreePlanActivated: current.lastFreePlanActivated || null,
+          };
+        });
+
+        // If user attempted Free inside 30 days, state will be unchanged
+        const finalSnap = await get(subRef);
+        const finalData = finalSnap.val() || {};
+        if (plan === "Free") {
+          const last = finalData.lastFreePlanActivated;
+          const ok = canActivateFreePlan(last);
+          if (!ok) {
+            alert("You can only activate the Free plan once every 30 days.");
+            setSaving(false);
+            return;
           }
         }
-
-        // ✅ Build new payload
-        const payload = {
-          plan,
-          maxCredits,
-          credits: maxCredits,
-          status: "active",
-          lastPaymentAt: now.toISOString(),
-          lastReset: now.toISOString(),
-          updatedAt: serverTimestamp(),
-        };
-
-        // ✅ Track last free activation
-        if (plan === "Free") payload.lastFreePlanActivated = now.toISOString();
-
-        await set(subRef, payload); // overwrite cleanly, simpler than update()
 
         alert("✅ Subscription activated successfully!");
         setTimeout(() => {
           navigate(`/seller/${sellerUID}`);
         }, 300);
-
         return;
       }
+
 
 
 
@@ -135,38 +169,43 @@ export default function SubscriptionsPay() {
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Confirm Subscription</h1>
-      <div className="rounded-lg border p-4 bg-white">
-        <p><b>Plan:</b> {plan}</p>
-        {plan === "VerifiedBuyer" ? (
-          <p><b>Type:</b> Buyer Verification Subscription</p>
-        ) : (
-          <>
-            <p><b>Monthly uploads:</b> {maxCredits}</p>
-            {plan === "Pro" && <p><b>Selected Pro cap:</b> {creditsParam}</p>}
-          </>
-        )}
-      </div>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={styles.title}>Confirm Subscription</h1>
 
-      {error && <div className="mt-4 text-red-600">{error}</div>}
+        <div className={styles.planBox}>
+          <p><b>Plan:</b> {plan}</p>
+          {plan === "VerifiedBuyer" ? (
+            <p><b>Type:</b> Buyer Verification Subscription</p>
+          ) : (
+            <>
+              <p><b>Monthly uploads:</b> {maxCredits}</p>
+              {plan === "Pro" && <p><b>Selected Pro cap:</b> {creditsParam}</p>}
+            </>
+          )}
+        </div>
 
-      <div className="mt-6 flex gap-3">
-        <button
-          className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-          onClick={() => navigate(-1)}
-          disabled={saving}
-        >
-          Back
-        </button>
-        <button
-          className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
-          onClick={confirmAndApply}
-          disabled={saving || !sellerUID}
-        >
-          {saving ? "Applying…" : "Confirm & Activate"}
-        </button>
+        {error && <div className={styles.error}>{error}</div>}
+
+        <div className={styles.buttonRow}>
+          <button
+            className={`${styles.btn} ${styles.btnBack}`}
+            onClick={() => navigate(-1)}
+            disabled={saving}
+          >
+            Back
+          </button>
+
+          <button
+            className={`${styles.btn} ${styles.btnConfirm}`}
+            onClick={confirmAndApply}
+            disabled={saving || !sellerUID}
+          >
+            {saving ? "Applying…" : "Confirm & Activate"}
+          </button>
+        </div>
       </div>
     </div>
   );
+
 }

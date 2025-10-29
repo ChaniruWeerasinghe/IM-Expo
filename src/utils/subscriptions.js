@@ -16,11 +16,12 @@ export const verificationType = (hasPermit) => {
 };
 
 
-// ✅ Prevent Free plan reactivation before 30 days
-export const canActivateFreePlan = (lastActivatedDate) => {
-  if (!lastActivatedDate) return true; // first time
-  const last = new Date(lastActivatedDate);
-  const now = new Date();
-  const diffDays = (now - last) / (1000 * 60 * 60 * 24);
-  return diffDays >= 30; // only allow after 30 days
+// ✅ Prevent Free plan reactivation before 30 days (supports ISO or millis)
+export const canActivateFreePlan = (lastActivated) => {
+  if (!lastActivated) return true;
+  const last =
+    typeof lastActivated === "number" ? new Date(lastActivated) : new Date(lastActivated);
+  const diffDays = (Date.now() - last.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays >= 30;
 };
+

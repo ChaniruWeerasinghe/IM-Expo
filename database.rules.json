@@ -1,0 +1,50 @@
+{
+  "rules": {
+    "users": {
+      "sellers": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      },
+      "buyers": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    },
+
+    "subscriptions": {
+      "sellers": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.child('plan').val() !== 'Free' || !data.child('lastFreePlanActivated').exists() || (data.child('lastFreePlanActivated').isNumber() && (now - data.child('lastFreePlanActivated').val()) >= (30 * 24 * 60 * 60 * 1000))"
+        }
+      }
+    },
+
+    "products": {
+      ".read": true,
+      "$id": {
+        
+        ".write": "auth != null && auth.uid === newData.child('sellerUID').val()"
+      }
+    },
+
+    "orderRequests": {
+      "$id": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "transactions": {
+      "$id": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}

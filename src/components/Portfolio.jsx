@@ -1,13 +1,10 @@
 // src/components/Portfolio.jsx
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { ref, onValue, push } from "firebase/database";
+import { ref, onValue, push, update } from "firebase/database";
 import { motion, AnimatePresence } from "framer-motion";
-
-import { update } from "firebase/database"; // ✅ make sure this import is added with others
 import ProductReview from "./ProductReview";
-
-
+import styles from "./ProductModal.module.css"; // ✅ Import external modal CSS
 
 const Portfolio = () => {
   const [products, setProducts] = useState([]);
@@ -35,35 +32,34 @@ const Portfolio = () => {
     }
   };
 
-
-  // Fetch products from Firebase
+  // 🔹 Fetch products
   useEffect(() => {
     const productsRef = ref(db, "products");
     const unsubscribe = onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        const list = Object.entries(data).map(([id, product]) => ({ id, ...product }));
+        const list = Object.entries(data).map(([id, product]) => ({
+          id,
+          ...product,
+        }));
         setProducts(list);
         setFiltered(list);
       }
-
-
-
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Filter products
+  // 🔹 Filter products
   useEffect(() => {
     let result = products.filter((p) =>
       p.name.toLowerCase().includes(search.toLowerCase())
     );
-    if (category !== "All") result = result.filter((p) => p.category === category);
+    if (category !== "All")
+      result = result.filter((p) => p.category === category);
     setFiltered(result);
   }, [search, category, products]);
 
-  // Contact seller
+  // 🔹 Contact Seller
   const contactSeller = (product) => {
     if (!product.id || !product.seller) {
       alert("Cannot send message: product or seller info missing.");
@@ -86,7 +82,7 @@ const Portfolio = () => {
     }
   };
 
-  // Request import permission
+  // 🔹 Request Import Permission
   const requestPermission = (product) => {
     if (!product.id) {
       alert("Cannot request permission: product ID missing.");
@@ -158,7 +154,6 @@ const Portfolio = () => {
                   incrementViews(p.id);
                   setSelectedProduct(p);
                 }}
-
                 className="cursor-pointer bg-white rounded-xl shadow-md hover:shadow-2xl transition-transform transform hover:-translate-y-1 overflow-hidden flex flex-col h-full"
               >
                 <img
@@ -168,7 +163,9 @@ const Portfolio = () => {
                 />
                 <div className="p-4 flex flex-col flex-1 justify-between h-52">
                   <div>
-                    <h3 className="text-lg font-bold text-green-600">{p.name}</h3>
+                    <h3 className="text-lg font-bold text-green-600">
+                      {p.name}
+                    </h3>
                     <p className="text-sm text-gray-600">{p.category}</p>
                   </div>
                   <div className="mt-2">
@@ -183,57 +180,113 @@ const Portfolio = () => {
         <p className="text-gray-500 text-center">No products found.</p>
       )}
 
-      {/* Modal for product details */}
+      {/* Product Modal */}
       <AnimatePresence>
         {selectedProduct && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedProduct(null)}
           >
             <motion.div
-              className="bg-white rounded-2xl p-6 max-w-md w-full relative"
+              className={styles["modal-container"]}
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 font-bold text-xl"
+                className={styles["close-btn"]}
                 onClick={() => setSelectedProduct(null)}
               >
                 ×
               </button>
-              <img
-                src={selectedProduct.image || "https://via.placeholder.com/300"}
-                alt={selectedProduct.name}
-                className="w-full h-60 object-cover rounded-xl mb-4"
-              />
-              <h3 className="text-xl font-bold text-green-600">{selectedProduct.name}</h3>
-              <p className="text-gray-600 mb-2">{selectedProduct.category}</p>
-              <p className="font-semibold text-gray-700 mb-4">${selectedProduct.price}</p>
-              <p className="text-gray-700 mb-4">
-                {selectedProduct.description || "No description provided."}
-              </p>
-              {/* Product Rating Section */}
-              <ProductReview productId={selectedProduct.id} />
 
-              <div className="flex gap-4">
+              <div className={styles["modal-content"]}>
+                <div className={styles.left}>
+                  <img
+                    src={
+                      selectedProduct.image || "https://via.placeholder.com/300"
+                    }
+                    alt={selectedProduct.name}
+                    className={styles["product-image"]}
+                  />
+                  <h3 className={styles["product-name"]}>
+                    {selectedProduct.name}
+                  </h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <p className={styles.category}>{selectedProduct.category}</p>
+                    <p className={styles.price}>${selectedProduct.price}</p>
+                  </div>
+
+                  <p className={styles.description}>
+                    {selectedProduct.description || "No description provided."}
+                  </p>
+                </div>
+
+                <div className={styles.right}>
+                  {/* Multiple Info Sections */}
+                  <div className={styles["info-group"]}>
+                    <div className={styles["info-block"]}>
+                      <h4 className={styles["rate-title"]}>Product Actions & Feedback</h4>
+                      <p className={styles["action-desc"]}>
+                        You can <strong>contact the seller</strong> to discuss your order or
+                        <strong> request import permission</strong> if you wish to proceed with
+                        official trade.
+                      </p>
+                    </div>
+
+                    <div className={styles["info-block"]}>
+                      <h4 className={styles["rate-title"]}>Safety & Compliance</h4>
+                      <p className={styles["action-desc"]}>
+                        All products listed here meet basic import and export compliance
+                        requirements. Sellers are encouraged to provide relevant certificates
+                        upon request.
+                      </p>
+                    </div>
+
+                    <div className={styles["info-block"]}>
+                      <h4 className={styles["rate-title"]}>Quality Assurance</h4>
+                      <p className={styles["action-desc"]}>
+                        Buyers can rate the product quality and share their experience after
+                        receiving the item to help improve the marketplace standards.
+                      </p>
+                    </div>
+                  </div>
+
+                  <hr className={styles["divider"]} />
+
+                  {/* Rating Section */}
+                  <div className={styles["rate-section"]}>
+                    <h4 className={styles["rate-title-custom"]}>Rate this Product</h4>
+                    <ProductReview productId={selectedProduct.id} />
+                  </div>
+
+
+
+                </div>
+
+              </div>
+
+              <div className={styles["bottom-buttons"]}>
                 <button
-                  className="flex-1 bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition"
+                  className={styles["contact-btn"]}
                   onClick={() => contactSeller(selectedProduct)}
                 >
                   Contact Seller
                 </button>
+
                 <button
-                  className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition"
+                  className={styles["import-btn"]}
                   onClick={() => requestPermission(selectedProduct)}
+                  style={{ marginTop: "0.5rem" }}
                 >
                   Request Import Permission
                 </button>
               </div>
+
             </motion.div>
           </motion.div>
         )}

@@ -3,6 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { db, auth } from "../firebase";
 import { signOut } from "firebase/auth";
+
+import { canActivateFreePlan } from "../utils/subscriptions";
+
+
+
 import {
   ref,
   get,
@@ -430,12 +435,25 @@ const SellerDashboard = () => {
                 {/* 🔽 Added Upgrade Plan Button Here */}
                 {subscription.credits <= 0 && (
                   <button
-                    onClick={() => navigate(`/subscriptions?seller=${uid}`)}
+                    onClick={async () => {
+                      const subSnap = await get(ref(db, `subscriptions/sellers/${uid}`));
+                      const subData = subSnap.exists() ? subSnap.val() : {};
+                      const lastActivated = subData?.lastFreePlanActivated;
+
+                      // 🔒 Prevent reactivation if last Free plan was within 30 days
+                      if (subscription.plan === "Free" && !canActivateFreePlan(lastActivated)) {
+                        alert("⚠️ You can only activate the Free plan once every 30 days.");
+                        return;
+                      }
+
+                      navigate(`/subscriptions?seller=${uid}`);
+                    }}
                     className="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"
                   >
                     Upgrade Plan
                   </button>
                 )}
+
               </div>
             )}
           </div>
