@@ -73,6 +73,13 @@ const Header = ({ currentUser }) => {
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-6 items-center">
             <Link
+              to="/"
+              className="text-gray-700 hover:text-green-500 transition"
+            >
+              Home
+            </Link>
+
+            <Link
               to="/discover"
               className="text-gray-700 hover:text-green-500 transition"
             >
@@ -185,6 +192,14 @@ const Header = ({ currentUser }) => {
       {isOpen && (
         <div className="md:hidden bg-white shadow-md">
           <div className="px-4 pt-3 pb-4 space-y-2 flex flex-col">
+            <Link
+              to="/"
+              onClick={() => setIsOpen(false)}
+              className="text-gray-700 hover:text-green-500 block"
+            >
+              Home
+            </Link>
+
 
             <Link
               to="/discover"

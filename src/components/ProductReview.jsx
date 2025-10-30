@@ -25,7 +25,7 @@ import { FaUpload } from "react-icons/fa";
 const ProductReview = ({
   productId,
   mode = "read",                 // "read" | "rate"
-  onSubmitted = () => {},         // callback after submit (used by BuyerDashboard to close modal)
+  onSubmitted = () => { },         // callback after submit (used by BuyerDashboard to close modal)
 }) => {
   const [user] = useAuthState(auth);
 
@@ -134,7 +134,7 @@ const ProductReview = ({
     return (
       <div className="flex items-center gap-3">
         {renderStars(avgRating)}
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-green-600 font-semibold ml-1 whitespace-nowrap">
           <span className="font-semibold">{avgRating ? avgRating.toFixed(1) : "0.0"}</span>
           <span> / 5</span>
           <span className="ml-2">({ratingsCount} {ratingsCount === 1 ? "rating" : "ratings"})</span>
@@ -153,9 +153,8 @@ const ProductReview = ({
             onMouseEnter={() => setHover(num)}
             onMouseLeave={() => setHover(0)}
             onClick={() => setMyRating(num)}
-            className={`text-3xl transition ${
-              num <= (hover || myRating) ? "text-yellow-400 scale-110" : "text-gray-300"
-            }`}
+            className={`text-3xl transition ${num <= (hover || myRating) ? "text-yellow-400 scale-110" : "text-gray-300"
+              }`}
             aria-label={`rate-${num}`}
             type="button"
           >
@@ -167,9 +166,8 @@ const ProductReview = ({
       <button
         onClick={submitRating}
         disabled={submitting || myRating < 1}
-        className={`${
-          submitting ? "opacity-70 cursor-not-allowed" : ""
-        } bg-green-600 hover:bg-green-700 text-white rounded-full p-2 transition flex items-center justify-center`}
+        className={`${submitting ? "opacity-70 cursor-not-allowed" : ""
+          } bg-green-600 hover:bg-green-700 text-white rounded-full p-2 transition flex items-center justify-center`}
         title="Submit rating"
         type="button"
       >

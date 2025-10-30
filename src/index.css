@@ -19,3 +19,19 @@ html, body {
   overflow-x: hidden;
   background-color: #f9fafb; /* matches Tailwind gray-50 */
 }
+
+/* ====== Hide Scrollbars but Keep Scrolling ====== */
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+:root {
+  /* Adjust this to move scroll arrows left or right */
+  --arrow-left-shift: -160px; /* try -200px, -400px, etc. */
+}
+

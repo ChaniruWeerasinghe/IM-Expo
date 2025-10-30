@@ -48,7 +48,7 @@
 
 .rate-title-custom {
   position: relative;
-  left: 26px;
+  left: -5px;
   top: 0px;         /* moves title slightly closer to stars */
   font-weight: 600;
   font-size: 1.1rem;
@@ -62,7 +62,7 @@
     position: absolute;
     bottom: -5rem;
     /* bring to exact bottom */
-    left: 1.5rem;
+    left: 3.5rem;
     width: calc(100% - 1.5rem);
     text-align: left;
     /* align the text left */

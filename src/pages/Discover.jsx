@@ -9,6 +9,8 @@ import ProductCard from "../components/ProductCard";
 
 import TopVerifiedSellers from "../components/TopVerifiedSellers";
 import TopVerifiedBuyers from "../components/TopVerifiedBuyers";
+import CategoryExplorer from "../components/CategoryExplorer";
+
 
 import { motion } from "framer-motion";
 
@@ -280,35 +282,8 @@ const Discover = () => {
 
 
             {/* ---------------- Categories ---------------- */}
-            <section className="py-16 px-6 lg:px-12 bg-gray-50 border-t border-gray-200">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-3">
-                        Explore by Category
-                    </h2>
-                    <p className="text-gray-600">
-                        Discover local industries and creative sectors on IM-Expo.
-                    </p>
-                </div>
+            <CategoryExplorer />
 
-                <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                    {[
-                        "Handicrafts",
-                        "Apparel",
-                        "Agriculture",
-                        "Art & Design",
-                        "Technology",
-                        "Services",
-                    ].map((cat, index) => (
-                        <div
-                            key={index}
-                            className="bg-white shadow-sm rounded-xl p-6 text-center hover:shadow-md transition"
-                        >
-                            <div className="text-green-600 text-3xl mb-3">🟢</div>
-                            <p className="font-medium text-gray-800">{cat}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
 
             {/* ---------------- How It Works ---------------- */}
             <section className="bg-white py-20 px-6 lg:px-12 border-t border-gray-200">
