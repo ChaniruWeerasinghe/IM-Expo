@@ -26,7 +26,7 @@ export default function SubscriptionsPay() {
 
   useEffect(() => {
     if (!sellerUID) {
-      setError("Missing user ID. Please open subscriptions from your dashboard.");
+      setError("Missing user ID. Please Login and open subscriptions from your dashboard.");
     }
   }, [sellerUID]);
 

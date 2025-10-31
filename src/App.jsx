@@ -29,6 +29,8 @@ import SellerTransactions from "./components/SellerTransactions";
 import PermitVerification from "./components/PermitVerification";
 
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
+import ChatBot from "./components/ChatBot";
+
 
 
 
@@ -124,55 +126,55 @@ const StatsSection = () => {
       </div>
 
       {/* Stats Grid (Updated Compact Metric Style) */}
-<div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto w-full">
-  {/* Active Users */}
-  <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
-    <div>
-      <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.totalUsers}</h3>
-      <p className="text-gray-400 text-sm tracking-wide uppercase">Active Users</p>
-    </div>
-  </div>
+      <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto w-full">
+        {/* Active Users */}
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
+          <div>
+            <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.totalUsers}</h3>
+            <p className="text-gray-400 text-sm tracking-wide uppercase">Active Users</p>
+          </div>
+        </div>
 
-  {/* Sellers */}
-  <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
-    <div>
-      <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.sellers}</h3>
-      <p className="text-gray-400 text-sm tracking-wide uppercase">Sellers</p>
-    </div>
-  </div>
+        {/* Sellers */}
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
+          <div>
+            <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.sellers}</h3>
+            <p className="text-gray-400 text-sm tracking-wide uppercase">Sellers</p>
+          </div>
+        </div>
 
-  {/* Buyers */}
-  <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
-    <div>
-      <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.buyers}</h3>
-      <p className="text-gray-400 text-sm tracking-wide uppercase">Buyers</p>
-    </div>
-  </div>
+        {/* Buyers */}
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
+          <div>
+            <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.buyers}</h3>
+            <p className="text-gray-400 text-sm tracking-wide uppercase">Buyers</p>
+          </div>
+        </div>
 
-  {/* Verified Members */}
-  <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
-    <div>
-      <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.verified}</h3>
-      <p className="text-gray-400 text-sm tracking-wide uppercase">Verified Members</p>
-    </div>
-  </div>
+        {/* Verified Members */}
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
+          <div>
+            <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.verified}</h3>
+            <p className="text-gray-400 text-sm tracking-wide uppercase">Verified Members</p>
+          </div>
+        </div>
 
-  {/* Products Published */}
-  <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
-    <div>
-      <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.products}</h3>
-      <p className="text-gray-400 text-sm tracking-wide uppercase">Products Published</p>
-    </div>
-  </div>
+        {/* Products Published */}
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
+          <div>
+            <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.products}</h3>
+            <p className="text-gray-400 text-sm tracking-wide uppercase">Products Published</p>
+          </div>
+        </div>
 
-  {/* Completed Transactions */}
-  <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
-    <div>
-      <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.transactions}</h3>
-      <p className="text-gray-400 text-sm tracking-wide uppercase">Completed Transactions</p>
-    </div>
-  </div>
-</div>
+        {/* Completed Transactions */}
+        <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 hover:border-green-500 transition duration-300 shadow-lg text-left flex flex-col justify-between">
+          <div>
+            <h3 className="text-5xl font-extrabold text-green-400 mb-2">{stats.transactions}</h3>
+            <p className="text-gray-400 text-sm tracking-wide uppercase">Completed Transactions</p>
+          </div>
+        </div>
+      </div>
 
 
       {/* CTA */}
@@ -275,6 +277,8 @@ const App = () => {
         <Route path="/permit-verification" element={<PermitVerification />} />
 
       </Routes>
+      {/* ✅ Global Chatbot Component (floating bottom-right) */}
+      <ChatBot />
     </Router>
   );
 };
