@@ -2,9 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { MessageCircle, X } from "lucide-react";
 import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
-import { defaultResponses } from "../data/chatResponses";
+
 
 import { intents } from "../data/chatKnowledge";
+import openai from "../utils/openaiClient";
+import { imexpoData } from "../data/imexpoData";
+
+
 
 
 const ChatBot = () => {
@@ -23,42 +27,83 @@ const ChatBot = () => {
         generateBotResponse(userMessage);
     };
 
-    const generateBotResponse = (userMessage) => {
-        const lower = userMessage.toLowerCase().trim();
+    const generateBotResponse = async (userMessage) => {
+        const cleanedMsg = userMessage.trim().toLowerCase();
 
-        // helper: check similarity
-        const similarity = (a, b) => {
-            const wordsA = a.split(" ");
-            const wordsB = b.split(" ");
-            let matches = 0;
-            for (const wa of wordsA) {
-                if (wordsB.includes(wa)) matches++;
-            }
-            return matches / Math.max(wordsA.length, wordsB.length);
-        };
+        // --- Local Fallback ---
+        const localFallback = () => {
+            const similarity = (a, b) => {
+                const wordsA = a.split(" ");
+                const wordsB = b.split(" ");
+                let matches = 0;
+                for (const wa of wordsA) if (wordsB.includes(wa)) matches++;
+                return matches / Math.max(wordsA.length, wordsB.length);
+            };
 
-        // find best match
-        let bestMatch = null;
-        let highestScore = 0;
-        for (const intent of intents) {
-            for (const example of intent.examples) {
-                const score = similarity(lower, example.toLowerCase());
-                if (score > highestScore) {
-                    highestScore = score;
-                    bestMatch = intent;
+            let bestMatch = null;
+            let highestScore = 0;
+            for (const intent of intents) {
+                for (const example of intent.examples) {
+                    const score = similarity(cleanedMsg, example.toLowerCase());
+                    if (score > highestScore) {
+                        highestScore = score;
+                        bestMatch = intent;
+                    }
                 }
             }
-        }
 
-        let response =
-            highestScore > 0.3
+            return highestScore > 0.3
                 ? bestMatch.answer
-                : "I'm not sure about that yet. Try asking about uploads, verification, or subscriptions.";
+                : "I'm not sure about that yet. Try asking about uploading, verification, or subscriptions.";
+        };
 
-        setTimeout(() => {
-            setMessages((prev) => [...prev, { sender: "bot", text: response }]);
-        }, 400);
+        try {
+            const platformInfo = JSON.stringify(imexpoData).slice(0, 16000);
+
+            // --- AI request ---
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    {
+                        role: "system",
+                        content: `
+You are the IM-Expo Assistant for a Sri Lanka–based import/export platform.
+You must ALWAYS use the provided IM-Expo data to answer questions.
+Be conversational, short, and natural — but stay factual.
+If the question isn't related to the platform, politely say:
+"I'm not sure about that yet. Please check our Resources page or Contact Us."
+
+Here is your knowledge base: ${platformInfo}
+          `,
+                    },
+                    {
+                        role: "user",
+                        content: `
+User said: "${userMessage}"
+
+1. If this message is unclear, rephrase it to find intent (like "How can I upload?" → "upload help").
+2. Then answer using IM-Expo data only.
+3. Keep the reply helpful and friendly (1–3 lines max).
+          `,
+                    },
+                ],
+                temperature: 0.4,
+                max_tokens: 250,
+            });
+
+            const aiReply =
+                completion?.choices?.[0]?.message?.content?.trim() || localFallback();
+
+            setMessages((prev) => [...prev, { sender: "bot", text: aiReply }]);
+        } catch (error) {
+            console.error("AI Error:", error);
+            const fallback = localFallback();
+            setMessages((prev) => [...prev, { sender: "bot", text: fallback }]);
+        }
     };
+
+
+
 
 
     useEffect(() => {

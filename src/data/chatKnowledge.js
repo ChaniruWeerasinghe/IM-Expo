@@ -325,10 +325,644 @@ export const intents = [
     },
 
 
+    // -------------------------------
+    // 4️⃣  VERIFICATION / TRUST / BADGES
+    // -------------------------------
+    {
+        id: "verification_overview",
+        examples: [
+            "what is verification", "what is verified", "im expo verified",
+            "verified badge", "how verification works", "explain verification",
+            "verified system", "verified title"
+        ],
+        answer:
+            "IM-Expo Verification is our trust badge for sellers and buyers who’ve proven reliability through successful transactions or verified documentation."
+    },
+
+    {
+        id: "how_to_get_verified",
+        examples: [
+            "how to get verified", "how can i be verified", "how to become verified",
+            "i want verified badge", "apply for verification", "get verification",
+            "become verified member"
+        ],
+        answer:
+            "Complete 10 successful transactions or submit your business documents for review. Once approved, you’ll see the IM-Expo Verified badge on your profile and products."
+    },
+
+    {
+        id: "verification_benefits",
+        examples: [
+            "benefits of verification", "why verified", "what do i get if verified",
+            "verified advantages", "why become verified", "is verification useful"
+        ],
+        answer:
+            "Verified members gain trust, higher search rankings, and extra visibility on the home and Discover pages — buyers prefer verified profiles."
+    },
+
+    {
+        id: "verification_buyer",
+        examples: [
+            "buyer verification", "verify buyer", "can buyers get verified",
+            "how buyers verified", "buyer badge"
+        ],
+        answer:
+            "Yes — buyers with official import permits can become Verified Buyers. They can show their badge after submitting the necessary permit details."
+    },
+
+    {
+        id: "verification_seller",
+        examples: [
+            "seller verification", "verify seller", "how sellers verified",
+            "seller badge", "how to verify my seller account"
+        ],
+        answer:
+            "Sellers are verified through consistent successful transactions and manual admin review of business information and uploaded documents."
+    },
+
+    {
+        id: "verification_pending",
+        examples: [
+            "verification pending", "waiting for verification", "how long verification takes",
+            "verification delay", "verification approval time"
+        ],
+        answer:
+            "Verification reviews usually complete within 24–48 hours. If it’s been longer, check your email or contact support@im-expo.com."
+    },
+
+    {
+        id: "verification_requirements",
+        examples: [
+            "verification requirements", "documents for verification", "what do i need to verify",
+            "needed docs", "required papers", "proof for verification"
+        ],
+        answer:
+            "We require a valid ID or business registration certificate and basic profile information. Everything is kept confidential and secure."
+    },
+
+    {
+        id: "verification_lost",
+        examples: [
+            "lost my badge", "badge missing", "verification gone", "no badge showing",
+            "badge disappeared"
+        ],
+        answer:
+            "If your verified badge is missing, check your subscription status and recent transactions. Badges can temporarily hide if a plan expires or you switch accounts."
+    },
+
+    {
+        id: "verification_check",
+        examples: [
+            "check verification status", "am i verified", "is my account verified",
+            "how to see if verified"
+        ],
+        answer:
+            "Visit your Dashboard → Profile Settings to see your verification status. If approved, you’ll see a green ‘Verified’ badge."
+    },
+
+    {
+        id: "verification_support",
+        examples: [
+            "verification problem", "verification not working", "cant get verified",
+            "verification failed", "issue with verification"
+        ],
+        answer:
+            "If you faced a verification issue, email support@im-expo.com with your UID and any error screenshots. The team will resolve it within 24 hours."
+    },
+
+
+
+    // -------------------------------
+    // 5️⃣  BOOSTS / PROMOTIONS / VISIBILITY
+    // -------------------------------
+    {
+        id: "boost_overview",
+        examples: [
+            "what is boost", "boost product", "promotion", "how to promote",
+            "how boosting works", "feature my product", "advertise product",
+            "boost visibility", "boost system", "boost info"
+        ],
+        answer:
+            "Boosts let you promote your product for more visibility on the homepage, Discover page, and category listings. You can choose durations like 1, 7, or 30 days."
+    },
+
+    {
+        id: "boost_how_to",
+        examples: [
+            "how to boost", "how can i boost", "boost my listing", "activate boost",
+            "enable promotion", "where to find boost", "boost option"
+        ],
+        answer:
+            "Go to your **Seller Dashboard → My Products → Boost Product**. Choose the duration (1 / 7 / 30 days) and payment method to activate your promotion."
+    },
+
+    {
+        id: "boost_payment",
+        examples: [
+            "boost payment", "pay for boost", "boost cost", "how much is boost",
+            "promotion price", "boost pricing", "boost plan", "boost charge"
+        ],
+        answer:
+            "Boost pricing depends on duration: 1 day = small fee, 7 days = discounted bundle, 30 days = best value. Pay using card, mobile, or subscription credits."
+    },
+
+    {
+        id: "boost_duration",
+        examples: [
+            "boost length", "how long boost lasts", "boost duration", "how many days boost",
+            "when boost ends", "boost expiry"
+        ],
+        answer:
+            "You can select boost durations of 1 day, 7 days, or 30 days. After expiry, you can renew or extend directly from your dashboard."
+    },
+
+    {
+        id: "boost_benefits",
+        examples: [
+            "why boost", "boost benefits", "why promote", "advantages of boost",
+            "what happens if i boost"
+        ],
+        answer:
+            "Boosting gives your product a prime spot on IM-Expo listings, increasing buyer clicks, inquiries, and transaction chances."
+    },
+
+    {
+        id: "boost_status",
+        examples: [
+            "boost status", "is my boost active", "check boost", "boost expired",
+            "when will boost start", "boost pending"
+        ],
+        answer:
+            "Check your **Boost Dashboard** or the product card tag. Status labels show Active, Upcoming, or Expired depending on the schedule."
+    },
+
+    {
+        id: "boost_auto",
+        examples: [
+            "auto renew boost", "repeat boost", "automatic boost", "renew promotion automatically"
+        ],
+        answer:
+            "Auto-renew for boosts will arrive soon! For now, you can re-activate manually once a boost ends."
+    },
+
+    {
+        id: "boost_refund",
+        examples: [
+            "boost refund", "cancel boost", "stop promotion", "boost cancel", "money back boost"
+        ],
+        answer:
+            "Boost payments are non-refundable once activated, but you can pause or change duration before confirming payment."
+    },
+
+    {
+        id: "boost_tips",
+        examples: [
+            "how to get more views", "boost tips", "promotion advice", "how to attract buyers",
+            "best boost time", "increase reach"
+        ],
+        answer:
+            "Use boosts during weekends or holidays when traffic peaks. Combine them with updated descriptions and clear product images for best results."
+    },
+
+    {
+        id: "boost_support",
+        examples: [
+            "boost not working", "promotion issue", "boost failed", "cant boost", "boost problem"
+        ],
+        answer:
+            "If your boost didn’t activate, check your internet or credit balance. If the issue continues, contact support@im-expo.com with your product ID."
+    },
+
+
+    // -------------------------------
+    // 6️⃣  TRANSACTIONS / ORDERS / PAYMENTS
+    // -------------------------------
+    {
+        id: "transaction_overview",
+        examples: [
+            "transactions", "my orders", "check orders", "see transactions",
+            "order history", "trade history", "past transactions", "order list"
+        ],
+        answer:
+            "View all your trade activity under **Transactions / Orders**. It shows ongoing orders, completed ones, and payment summaries for each product."
+    },
+
+    {
+        id: "transaction_start",
+        examples: [
+            "how to buy", "how to order", "make purchase", "start transaction",
+            "contact seller to buy", "place order"
+        ],
+        answer:
+            "Buyers can open a product page and click **Request Import / Contact Seller** to start a transaction. Both parties then confirm details before payment."
+    },
+
+    {
+        id: "transaction_tracking",
+        examples: [
+            "track order", "track transaction", "where is my order",
+            "order status", "transaction status", "shipping status"
+        ],
+        answer:
+            "Go to **Transactions → Ongoing Orders**. You’ll see each order’s progress, payment confirmation, and shipment updates once provided by the seller."
+    },
+
+    {
+        id: "transaction_complete",
+        examples: [
+            "complete order", "finish transaction", "mark as done",
+            "confirm delivery", "close transaction"
+        ],
+        answer:
+            "After delivery is confirmed, click **Mark as Complete**. Both buyer and seller receive confirmation, and credits update automatically."
+    },
+
+    {
+        id: "transaction_dispute",
+        examples: [
+            "dispute", "problem with order", "wrong product", "not received",
+            "report issue", "transaction dispute"
+        ],
+        answer:
+            "Use **Transactions → Report Issue** to file a dispute. Include your order ID and details; our support team will mediate within 48 hours."
+    },
+
+    {
+        id: "payment_methods",
+        examples: [
+            "payment options", "how to pay", "payment method", "card payment",
+            "mobile payment", "bank transfer", "pay securely"
+        ],
+        answer:
+            "IM-Expo supports card, mobile, or wallet payments. Choose your preferred method during checkout; all payments are processed securely."
+    },
+
+    {
+        id: "payment_failed",
+        examples: [
+            "payment failed", "payment error", "card declined", "transaction failed",
+            "money not deducted", "payment not working"
+        ],
+        answer:
+            "If payment fails, double-check your card or mobile wallet. Unsuccessful payments don’t deduct credits — retry after a few minutes or contact support."
+    },
+
+    {
+        id: "invoice_request",
+        examples: [
+            "invoice", "need invoice", "get bill", "receipt", "download invoice"
+        ],
+        answer:
+            "Invoices are automatically generated for every successful transaction. Download them from **Transactions → Completed Orders → Invoice PDF**."
+    },
+
+    {
+        id: "refund_request",
+        examples: [
+            "refund", "money back", "return payment", "cancel transaction",
+            "get refund"
+        ],
+        answer:
+            "Refunds are possible only for cancelled orders before shipment. Use **Transactions → Cancel Order** and note your reason; approved refunds credit within 3–5 days."
+    },
+
+    {
+        id: "transaction_support",
+        examples: [
+            "transaction issue", "order problem", "payment issue",
+            "cant see my orders", "transaction bug"
+        ],
+        answer:
+            "If your order isn’t showing or an amount looks wrong, refresh your dashboard. For persistent issues, email support@im-expo.com with your UID and order ID."
+    },
 
 
 
 
 
+    // -------------------------------
+    // 7️⃣  BUYER QUESTIONS / EXPLORE / DISCOVER
+    // -------------------------------
+    {
+        id: "buyer_explore_products",
+        examples: [
+            "find products", "browse products", "explore items", "discover products",
+            "product list", "where to find products", "how to explore", "find sellers",
+            "show me products", "look for products", "find verified sellers"
+        ],
+        answer:
+            "Buyers can explore all published items in the **Discover** section or the **Buyer Dashboard → Explore Products**. You can filter by category, location, or verified sellers."
+    },
+
+    {
+        id: "buyer_contact_seller",
+        examples: [
+            "contact seller", "message seller", "chat with seller",
+            "reach seller", "send message", "talk to seller", "ask seller"
+        ],
+        answer:
+            "Open any product page and click **Contact Seller**. You can send inquiries, negotiate prices, or request more information directly through IM-Expo."
+    },
+
+    {
+        id: "buyer_verified_sellers",
+        examples: [
+            "verified sellers", "trust sellers", "how to check seller",
+            "is seller verified", "safe sellers", "find verified suppliers"
+        ],
+        answer:
+            "Verified sellers display the green **IM-Expo Verified** badge. You can filter by verified sellers on the Discover page for trustworthy partners."
+    },
+
+    {
+        id: "buyer_import_permission",
+        examples: [
+            "import permission", "how to get permission", "apply for import",
+            "import license", "export permission", "buyer permit"
+        ],
+        answer:
+            "Buyers with official import or export permits can submit them through their profile to become Verified Buyers. This builds trust and unlocks extra features."
+    },
+
+    {
+        id: "buyer_favorites",
+        examples: [
+            "save product", "add to favorites", "bookmark item",
+            "save later", "wishlist"
+        ],
+        answer:
+            "Click the ⭐ icon on any product to save it to your Favorites. You can access all saved items under **Buyer Dashboard → Favorites.**"
+    },
+
+    {
+        id: "buyer_reviews",
+        examples: [
+            "leave review", "rate seller", "give feedback", "review product",
+            "how to rate"
+        ],
+        answer:
+            "After a completed order, buyers can rate sellers and leave feedback in **Transactions → Completed Orders → Leave Review.**"
+    },
+
+    {
+        id: "buyer_support",
+        examples: [
+            "buyer issue", "cant find products", "problem buying", "buyer support",
+            "buyer help", "buyer question"
+        ],
+        answer:
+            "For buyer-related questions, visit **Contact Us** or email support@im-expo.com. The team assists with orders, payments, or account access."
+    },
+
+    {
+        id: "buyer_security",
+        examples: [
+            "is it safe", "secure buying", "trusted platform", "safe transactions",
+            "scam protection", "secure payments"
+        ],
+        answer:
+            "Yes! IM-Expo verifies all users and processes payments through secure gateways. Always trade with verified members for maximum safety."
+    },
+
+    {
+        id: "buyer_notifications",
+        examples: [
+            "notifications", "alerts", "updates", "email updates",
+            "new product alerts", "order alerts"
+        ],
+        answer:
+            "Enable notifications in your **Buyer Dashboard → Settings** to get instant updates about orders, new products, or offers from verified sellers."
+    },
+
+    {
+        id: "buyer_filter_search",
+        examples: [
+            "filter", "search", "find by category", "search products",
+            "how to filter", "find by location", "advanced search"
+        ],
+        answer:
+            "Use the search bar or filter controls on the Discover page to narrow results by category, price, country, or verified status."
+    },
+
+
+
+
+    // -------------------------------
+    // 8️⃣  SELLER SUPPORT / DASHBOARD / ANALYTICS
+    // -------------------------------
+    {
+        id: "seller_dashboard_overview",
+        examples: [
+            "seller dashboard", "my dashboard", "seller home", "open dashboard",
+            "dashboard overview", "how dashboard works", "where is dashboard"
+        ],
+        answer:
+            "Your **Seller Dashboard** is your workspace — it lets you upload, edit, track sales, view analytics, and manage subscriptions all in one place."
+    },
+
+    {
+        id: "seller_manage_products",
+        examples: [
+            "manage products", "view my uploads", "see my products",
+            "check listings", "edit uploads"
+        ],
+        answer:
+            "Go to **Seller Dashboard → My Products** to view, edit, or delete listings. You’ll also see which items are boosted or pending approval."
+    },
+
+    {
+        id: "seller_analytics",
+        examples: [
+            "analytics", "product views", "see stats", "track views",
+            "product analytics", "dashboard analytics", "view performance"
+        ],
+        answer:
+            "Open **Dashboard → Analytics** to see views, clicks, boosts, and completed transactions — helping you understand what sells best."
+    },
+
+    {
+        id: "seller_messages",
+        examples: [
+            "buyer messages", "check messages", "new inquiries",
+            "contact requests", "chat requests"
+        ],
+        answer:
+            "All buyer messages appear under **Dashboard → Inbox**. Respond promptly to increase your verified-status score and conversion chances."
+    },
+
+    {
+        id: "seller_transactions",
+        examples: [
+            "seller transactions", "my sales", "sales history",
+            "track sales", "seller orders"
+        ],
+        answer:
+            "See your completed and pending sales in **Dashboard → Transactions.** Each record shows buyer info, amount, and verification status."
+    },
+
+    {
+        id: "seller_subscription_status",
+        examples: [
+            "check my plan", "subscription status", "how many credits left",
+            "remaining credits", "plan info", "active plan"
+        ],
+        answer:
+            "In **Dashboard → Subscription**, you can view active plan details, remaining credits, and renewal dates."
+    },
+
+    {
+        id: "seller_support",
+        examples: [
+            "seller help", "issue with dashboard", "cant upload", "seller problem",
+            "seller question", "support seller"
+        ],
+        answer:
+            "If you’re facing seller-side issues, visit **Contact Us** or email support@im-expo.com with your UID and a short description. Our team usually replies within 24 hours."
+    },
+
+    {
+        id: "seller_withdrawal",
+        examples: [
+            "withdraw money", "get paid", "payment withdrawal",
+            "seller payment", "receive money"
+        ],
+        answer:
+            "Once a buyer confirms delivery, your earnings appear in **Dashboard → Wallet**. You can withdraw via linked bank or mobile payment."
+    },
+
+    {
+        id: "seller_profile_update",
+        examples: [
+            "update profile", "edit company info", "change seller name",
+            "update contact", "profile edit"
+        ],
+        answer:
+            "Head to **Dashboard → Profile Settings** to update name, contact, address, or business details. Keeping data accurate helps verification."
+    },
+
+    {
+        id: "seller_performance_tips",
+        examples: [
+            "improve sales", "increase orders", "seller tips",
+            "grow business", "how to sell better"
+        ],
+        answer:
+            "Use clear photos, detailed descriptions, and respond fast to buyer messages. Regular boosts and verified status also grow visibility."
+    },
+
+
+
+
+
+
+
+
+
+
+
+    // -------------------------------
+    // 9️⃣  TECHNICAL HELP / ERRORS / ACCOUNT ISSUES
+    // -------------------------------
+    {
+        id: "account_login",
+        examples: [
+            "cant login", "login problem", "forgot password",
+            "password reset", "sign in error", "login not working",
+            "account access issue", "forgot my password"
+        ],
+        answer:
+            "Click **Forgot Password** on the Login page and follow the reset link sent to your email. If you still can’t access your account, contact support@im-expo.com."
+    },
+
+    {
+        id: "account_signup",
+        examples: [
+            "cant sign up", "signup issue", "register problem",
+            "error creating account", "account creation failed"
+        ],
+        answer:
+            "Ensure all required fields are filled and your email isn’t already registered. If it still fails, clear cache and retry or email support@im-expo.com."
+    },
+
+    {
+        id: "account_update",
+        examples: [
+            "update email", "change password", "edit account", "update account info",
+            "change details", "edit profile"
+        ],
+        answer:
+            "You can update your email, password, and details under **Dashboard → Profile Settings.** Remember to save changes before leaving."
+    },
+
+    {
+        id: "technical_bug",
+        examples: [
+            "website not loading", "site slow", "page error",
+            "something not working", "site issue", "bug report",
+            "error message", "crash problem"
+        ],
+        answer:
+            "Try refreshing your browser or clearing cache. If the problem continues, take a screenshot and send it to support@im-expo.com for review."
+    },
+
+    {
+        id: "upload_error",
+        examples: [
+            "upload not working", "cant upload", "image error",
+            "product not uploading", "upload failed", "error uploading"
+        ],
+        answer:
+            "Check that your images are under 5 MB and JPG/PNG format. Slow internet can also interrupt uploads. If it keeps failing, email support@im-expo.com."
+    },
+
+    {
+        id: "payment_error",
+        examples: [
+            "payment bug", "payment not working", "error paying",
+            "cant pay", "payment gateway error", "checkout problem"
+        ],
+        answer:
+            "If payment fails, ensure your card or wallet has funds and try again. No charges apply for failed attempts. Persistent errors → contact support."
+    },
+
+    {
+        id: "notification_issue",
+        examples: [
+            "no notifications", "not getting emails", "no alerts",
+            "notifications missing", "email not received"
+        ],
+        answer:
+            "Check your spam folder and verify your email address in Settings. You can also re-enable notifications in your Dashboard preferences."
+    },
+
+    {
+        id: "browser_support",
+        examples: [
+            "which browser", "browser issue", "mobile not working",
+            "app not loading", "desktop issue"
+        ],
+        answer:
+            "IM-Expo works best on Chrome, Edge, or Safari (latest versions). On mobile, open via browser instead of embedded apps like Facebook."
+    },
+
+    {
+        id: "account_delete",
+        examples: [
+            "delete account", "remove my account", "close account",
+            "how to delete account", "erase my data"
+        ],
+        answer:
+            "We’re sorry to see you go! Send a request to support@im-expo.com with your registered email. Your data will be deleted within 48 hours."
+    },
+
+    {
+        id: "other_support",
+        examples: [
+            "other issue", "something else", "different problem",
+            "need more help", "human support"
+        ],
+        answer:
+            "No worries! You can reach our human support anytime via the **Contact Us** page or email support@im-expo.com with your UID and issue summary."
+    },
 ];
 
