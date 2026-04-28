@@ -1,4 +1,3 @@
-// src/components/Login.jsx
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth, db } from "../firebase";
@@ -8,6 +7,26 @@ import Lottie from "lottie-react";
 import animationData from "../assets/animations/login-animation.json";
 import animationLeft from "../assets/animations/login-left.json";
 import CustomAlert from "./CustomAlert";
+
+// --- Loading Spinner ---
+const LoadingSpinner = () => (
+  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+);
+
+// --- Unified Form Component ---
+const FormField = ({ label, children, extra }) => (
+  <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex justify-between items-end ml-1">
+      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em]">
+        {label}
+      </label>
+      {extra}
+    </div>
+    <div className="relative">
+      {children}
+    </div>
+  </div>
+);
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -38,11 +57,11 @@ const Login = () => {
 
       if (buyerSnap.exists()) navigate(`/buyer/${user.uid}`);
       else if (sellerSnap.exists()) navigate(`/seller/${user.uid}`);
-      else setAlert({ message: "User role not found. Please contact support.", type: "error" });
+      else setAlert({ message: "User role not found.", type: "error" });
     } catch (error) {
       console.error(error);
       let msg = "Invalid email or password.";
-      if (error.code === "auth/user-not-found") msg = "No account found with this email.";
+      if (error.code === "auth/user-not-found") msg = "No account found.";
       if (error.code === "auth/wrong-password") msg = "Incorrect password.";
       setAlert({ message: msg, type: "error" });
     } finally {
@@ -52,102 +71,105 @@ const Login = () => {
 
   const handleForgotPassword = async () => {
     if (!email) {
-      setAlert({ message: "Please enter your email first to reset password.", type: "error" });
+      setAlert({ message: "Enter your email first.", type: "error" });
       return;
     }
     try {
       await sendPasswordResetEmail(auth, email);
-      setAlert({ message: "Password reset email sent! Check your inbox.", type: "success" });
+      setAlert({ message: "Reset email sent! Check your inbox.", type: "success" });
     } catch (error) {
-      console.error(error);
-      setAlert({ message: "Failed to send reset email. Verify your email address.", type: "error" });
+      setAlert({ message: "Failed to send reset email.", type: "error" });
     }
   };
 
+  const inputClasses = `
+    w-full h-[54px] px-4 border border-gray-100 bg-white rounded-xl outline-none transition-all duration-300 text-sm font-medium
+    hover:border-green-400 focus:border-green-500
+  `;
+
   return (
-    <div className="relative min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12 overflow-hidden">
+    <div className="relative min-h-screen bg-white flex items-center justify-center px-4 py-8 overflow-hidden">
+      <style>{`
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px white inset !important; }
+      `}</style>
+
       {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
 
-      {/* Page background decoration */}
-      <div
-        aria-hidden
-        className="fixed inset-y-0 right-0 w-[48vw] bg-green-600 pointer-events-none z-0 [clip-path:polygon(26%_0,100%_0,100%_100%,0%_100%)] hidden lg:block"
-      />
+      <div className="fixed inset-y-0 right-0 w-[45vw] bg-[#10B981] pointer-events-none z-0 [clip-path:polygon(20%_0,100%_0,100%_100%,0%_100%)] hidden lg:block" />
 
-      {/* LEFT-SIDE ANIMATION */}
-      <div className="fixed -bottom-20 left-0 hidden md:flex items-end justify-start pointer-events-none z-10">
-        <div className="w-[380px] max-w-[38vw]">
-          <Lottie animationData={animationLeft} loop={true} />
-        </div>
-      </div>
-
-      {/* Login Card */}
-      <div className="relative z-20 flex flex-col lg:flex-row bg-white shadow-2xl rounded-[2rem] overflow-hidden w-full max-w-5xl border border-gray-100">
-        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-          <h2 className="text-3xl font-extrabold text-gray-800 mb-2">Welcome Back</h2>
-          <p className="text-gray-500 mb-8">Sign in to your account</p>
-
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <div className="space-y-1">
-              <input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
-              />
-            </div>
-            <div className="space-y-1">
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition-all"
-              />
-              <div className="text-right mt-1">
-                <button
-                  type="button"
-                  onClick={handleForgotPassword}
-                  className="text-xs font-semibold text-green-600 hover:underline"
-                >
-                  Forgot Password?
-                </button>
-              </div>
+      <div className="animated-border-panel relative z-20 w-full max-w-5xl">
+        <div className="animated-border-inner flex-col lg:flex-row border border-gray-100">
+          
+          <div className="w-full lg:w-[58%] p-10 lg:p-20 flex flex-col justify-center">
+            <div className="mb-12 text-center lg:text-left">
+              <h2 className="text-4xl font-black text-gray-900 mb-3 tracking-tighter">Welcome Back</h2>
+              <p className="text-gray-400 font-medium">Continue your global trade journey</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all transform active:scale-95 ${
-                loading ? "bg-gray-300" : "bg-green-500 hover:bg-green-600 hover:shadow-green-500/20"
-              }`}
-            >
-              {loading ? "Verifying..." : "Login"}
-            </button>
-          </form>
+            <form onSubmit={handleLogin} className="flex flex-col gap-8">
+              <FormField label="Email Address">
+                <input
+                  type="email"
+                  placeholder="example@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={inputClasses}
+                />
+              </FormField>
 
-          <div className="mt-8 text-center text-sm text-gray-600">
-            Don’t have an account?{" "}
-            <Link to="/signup" className="text-green-600 font-bold hover:underline">
-              Sign Up
-            </Link>
+              <FormField 
+                label="Secure Password"
+                extra={
+                  <button type="button" onClick={handleForgotPassword} className="text-[10px] font-black text-[#10B981] uppercase tracking-wider hover:underline underline-offset-2">
+                    Forgot?
+                  </button>
+                }
+              >
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className={inputClasses}
+                />
+              </FormField>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`mt-4 w-full h-[60px] rounded-2xl font-black text-white text-lg transition-all duration-500 flex items-center justify-center gap-3 transform active:scale-95 ${
+                  loading
+                    ? "bg-[#059669] opacity-80 cursor-not-allowed"
+                    : "bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857]"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <LoadingSpinner />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  "Login to Account"
+                )}
+              </button>
+            </form>
+
+            <div className="mt-12 text-center text-sm font-medium text-gray-400">
+              New to IM-Expo? <Link to="/signup" className="text-[#10B981] font-black hover:underline underline-offset-8 ml-1 transition-all">Create Account</Link>
+            </div>
           </div>
 
-          <p className="text-xs text-gray-400 mt-10 text-center lg:text-left">
-            © {new Date().getFullYear()} IM-Expo. Secure Authentication.
-          </p>
-        </div>
-
-        {/* Right Animation Section */}
-        <div className="hidden lg:flex w-full lg:w-1/2 bg-gray-50 items-center justify-center p-12 border-l border-gray-100">
-          <div className="w-full max-w-sm">
-            <Lottie animationData={animationData} loop={true} />
-            <div className="mt-6 text-center">
-              <h3 className="text-lg font-bold text-gray-800">Secure Access</h3>
-              <p className="text-sm text-gray-500 mt-1">Your data is encrypted and protected with industry-standard security.</p>
+          <div className="hidden lg:flex lg:w-[42%] bg-white flex-col items-center justify-center p-16 border-l border-gray-50">
+            <div className="w-full max-w-xs space-y-10">
+              <div className="hover:scale-110 transition-transform duration-1000 ease-in-out">
+                  <Lottie animationData={animationData} loop={true} />
+              </div>
+              <div className="text-center space-y-4">
+                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Secure Trade</h3>
+                <p className="text-gray-400 text-sm leading-relaxed font-medium">Your account is protected by enterprise-grade security and verification systems.</p>
+              </div>
             </div>
           </div>
         </div>

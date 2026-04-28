@@ -290,7 +290,7 @@ const App = () => {
 // ---------------- Home Page ----------------
 const HomePage = ({ currentUser }) => {
   return (
-    <div className="font-roboto bg-gray-50 text-gray-800">
+    <div className="font-roboto bg-gray-50 text-gray-800 w-full min-h-screen overflow-x-hidden m-0 p-0">
       <Header currentUser={currentUser} logout={() => signOut(auth)} />
 
       {/* Hero Section */}

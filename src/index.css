@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 
 
@@ -14,10 +14,11 @@
 /* Ensure full width and remove right-side gap */
 html, body {
   width: 100%;
-  margin: 0;
-  padding: 0;
+  max-width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
   overflow-x: hidden;
-  background-color: #f9fafb; /* matches Tailwind gray-50 */
+  background-color: #f9fafb; 
   /* ====== Hide Default Scrollbar ====== */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
@@ -38,8 +39,48 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge */
 }
 
-:root {
-  /* Adjust this to move scroll arrows left or right */
-  --arrow-left-shift: -160px; /* try -200px, -400px, etc. */
+/* ====== Premium Animated Border ====== */
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animated-border-panel {
+  position: relative;
+  padding: 2px;
+  background: #f3f4f6;
+  border-radius: 3.1rem;
+  overflow: hidden;
+  display: flex;
+}
+
+.animated-border-panel::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 150deg,
+    #10B981 180deg,
+    transparent 210deg,
+    transparent 360deg
+  );
+  animation: rotate 5s linear infinite;
+  z-index: 0;
+}
+
+.animated-border-inner {
+  position: relative;
+  z-index: 1;
+  background: white;
+  width: 100%;
+  border-radius: 3rem;
+  display: flex;
+  flex-direction: inherit;
+  overflow: hidden;
 }
 

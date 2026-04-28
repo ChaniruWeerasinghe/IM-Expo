@@ -19,20 +19,17 @@ const CustomDropdown = ({ options, value, onChange, label }) => {
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
-      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">
-        {label}
-      </label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-3 border border-gray-300 rounded-lg flex justify-between items-center bg-white hover:border-green-500 transition-colors"
+        className="w-full h-[54px] px-4 border border-gray-200 rounded-xl flex justify-between items-center bg-white hover:border-green-400 transition-all duration-300"
       >
-        <span className="text-gray-700 capitalize">{selectedOption?.label || "Select..."}</span>
-        <ChevronDown size={18} className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        <span className="text-gray-700 text-sm font-medium capitalize">{selectedOption?.label || "Select..."}</span>
+        <ChevronDown size={18} className={`text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl overflow-hidden animate-in fade-in zoom-in duration-200">
           {options.map((option) => (
             <button
               key={option.value}
