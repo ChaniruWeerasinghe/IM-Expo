@@ -124,7 +124,7 @@ User said: "${userMessage}"
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="w-80 md:w-96 bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col overflow-hidden">
+                <div className="w-80 md:w-96 bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col overflow-hidden max-h-[500px] md:max-h-[600px]">
                     {/* Header */}
                     <div className="bg-blue-600 text-white px-4 py-2 flex justify-between items-center">
                         <span className="font-semibold">IM-Expo Assistant</span>

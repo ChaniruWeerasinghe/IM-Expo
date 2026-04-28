@@ -113,7 +113,7 @@ const PermitVerification = () => {
                         }}
                     >
                         <img
-                            src={require("../assets/badges/imexpo-verified-badge.png")}
+                            src="/assets/badges/imexpo-verified-badge.png"
                             alt="IM-Expo Verified Badge"
                             style={{ width: "280px", height: "auto" }}
                         />

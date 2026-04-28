@@ -18,6 +18,14 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   background-color: #f9fafb; /* matches Tailwind gray-50 */
+  /* ====== Hide Default Scrollbar ====== */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
 }
 
 /* ====== Hide Scrollbars but Keep Scrolling ====== */

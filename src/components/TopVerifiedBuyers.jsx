@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { ref, onValue } from "firebase/database";
 import { db } from "../firebase";
 import { Link } from "react-router-dom";
-import verifiedIcon from "../assets/badges/imexpo-verified-icon.png";
-import defaultAvatar from "../assets/badges/default-avatar.png";
+const verifiedIcon = "/assets/badges/imexpo-verified-icon.png";
+const defaultAvatar = "/assets/default-avatar.png";
 
 
 
